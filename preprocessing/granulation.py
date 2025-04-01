@@ -84,38 +84,8 @@ def is_overlapping(bbox1, bbox2):
 
 def merge_granules(granule_index, prev_granule_index, granules, bounding_box):
     minY, minX, maxY, maxX = bounding_box[granule_index]
-    # print(minY, minX, maxY, maxX)
 
     for y in range(minY, maxY + 1):
         for x in range(minX, maxX + 1):
             if prev_granule_index in granules[y][x]:
                 granules[y][x] = [granule_index]
-
-
-frames = video_processing.load_frames_from_mp4("../data/reka.mp4")
-granules, initial_colors, bounding_boxes = form_spatiotemporal_granules(frames, 2, 3)
-
-out = cv2.VideoWriter('../results/output_video_2.avi', cv2.VideoWriter_fourcc(*'XVID'), 20.0, (frames[0].shape[1], frames[0].shape[0]))
-
-for frame_index in range(len(frames) - 1):
-    frame = frames[frame_index]
-    for granule_index, bbox in bounding_boxes[frame_index].items():
-        minY, minX, maxY, maxX = bbox
-        cv2.rectangle(frame, (minX, minY), (maxX, maxY), (0, 0, 0), 1)
-
-    out.write(frame)  # Dodajemy klatkę do pliku wideo
-
-out.release()
-
-
-
-
-# frame = video_processing.load_frames_from_mp4("../data/reka.mp4")[0]
-# granules, initial_colors, bounding_boxes = create_granules(frame, 2) #400
-#
-# for granule_index, bbox in bounding_boxes.items():
-#     minY, minX, maxY, maxX = bbox
-#     cv2.rectangle(frame, (minX, minY), (maxX, maxY), (0, 0, 0), 1)
-#
-# cv2.imwrite("../results/granuled_arm.jpg", frame)
-
