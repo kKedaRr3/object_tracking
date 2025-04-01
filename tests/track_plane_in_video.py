@@ -58,7 +58,7 @@ def find_largest_contour_bbox(mask):
 # KROK 2: Główny pipeline
 #############################
 
-def track_plane_in_video(input_video, output_video, e=3.0):
+def track_object_in_video(input_video, output_video, e=3.0):
     """
     Odczytuje video z input_video, dla każdej klatki wykrywa ruch metodą
     three-point approximation, rysuje bounding box na największym obszarze ruchu
@@ -128,7 +128,7 @@ def track_plane_in_video(input_video, output_video, e=3.0):
 #############################
 
 if __name__ == "__main__":
-    input_vid = "../data/F1.mp4"  # Ścieżka do Twojego pliku wejściowego
-    output_vid = "samolot_wynik4.mp4"  # Gdzie zapisać efekt
+    input_vid = "../data/test.mp4"  # Ścieżka do Twojego pliku wejściowego
+    output_vid = "../results/samolot_wynik4.mp4"  # Gdzie zapisać efekt
 
-    track_plane_in_video(input_vid, output_vid, e=3.0)
+    track_object_in_video(input_vid, output_vid, e=3.0)
