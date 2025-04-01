@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 def load_frames_from_mp4(filename):
     frames = []

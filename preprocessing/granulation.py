@@ -1,8 +1,5 @@
 import numpy as np
 
-import video_processing
-import cv2
-
 '''Funkcja do sprawdzania podobiensta kolorow'''
 def colour_nearness(color1, color2, threshold):
     distance = np.linalg.norm(np.array(color1) - np.array(color2))
@@ -17,8 +14,9 @@ def create_granules(image, threshold):
     granule_index = 0
 
     for y in range(height):
+        if y % 10 == 0: print(f"Processed row {y}")
         for x in range(width):
-            if np.all(image[y][x] == 0) or granules[y][x] != []:  # Pomijamy czarne piksele i już przypisane
+            if np.all(image[y][x]) == 0 or granules[y][x] != []:
                 continue
             initial_colors[granule_index] = image[y][x]
             bounding_boxes[granule_index] = [y, x, y, x]  # [minY, minX, maxY, maxX]
@@ -27,7 +25,7 @@ def create_granules(image, threshold):
                 current_y, current_x = queue.pop(0)
                 for (off_set_y, off_set_x) in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
                     neighbor_y, neighbor_x = current_y + off_set_y, current_x + off_set_x
-                    if 0 <= neighbor_y < height and 0 <= neighbor_x < width and np.all(image[neighbor_y][neighbor_x] != 0):
+                    if 0 <= neighbor_y < height and 0 <= neighbor_x < width and np.all(image[neighbor_y][neighbor_x]) != 0:
                         if colour_nearness(image[current_y][current_x], image[neighbor_y][neighbor_x], threshold) and granule_index not in granules[neighbor_y][neighbor_x]:
                             granules[neighbor_y][neighbor_x].append(granule_index)
                             queue.append((neighbor_y, neighbor_x))
@@ -37,6 +35,7 @@ def create_granules(image, threshold):
                             bounding_boxes[granule_index][2] = max(bounding_boxes[granule_index][2], neighbor_y)  # maxY
                             bounding_boxes[granule_index][3] = max(bounding_boxes[granule_index][3], neighbor_x)  # maxX
             granule_index += 1
+    print("Frame Processed")
     return granules, initial_colors, bounding_boxes
 
 
@@ -54,6 +53,7 @@ def form_spatiotemporal_granules(frames, threshold, p):
 
     # Łączenie granulek z różnych klatek
     for t in range(1, len(frames) - 1):
+        print(f'Processing frame {t}/{len(frames)}')
         for granule_index in range(len(all_granules[t]) - 1):
             for previous_t in range(t - 1, t - p - 1, -1):
                 # Porównanie granulek z bieżącej klatki (t) z granulkami z poprzednich klatek

@@ -1,5 +1,5 @@
 import unittest
-from preprocessing import video_processing as prep
+from preprocessing import video_loader as prep
 
 class TestFrameLoader(unittest.TestCase):
 

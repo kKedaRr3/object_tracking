@@ -1,4 +1,4 @@
-from preprocessing import video_processing
+from preprocessing import video_loader
 from preprocessing import granulation
 import cv2
 
@@ -6,9 +6,10 @@ import cv2
 class Visualization:
 
     @staticmethod
-    def visualize_video_granulation(input_path, output_path):
-        frames = video_processing.load_frames_from_mp4(input_path)
-        granules, initial_colors, bounding_boxes = granulation.form_spatiotemporal_granules(frames, 2, 3)
+    def visualize_video_granulation(frames, output_path, threshold=2):
+        if type(frames).__name__ == 'str':
+            frames = video_loader.load_frames_from_mp4(frames)
+        granules, initial_colors, bounding_boxes = granulation.form_spatiotemporal_granules(frames, threshold, 3)
 
         out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'XVID'), 20.0,
                               (frames[0].shape[1], frames[0].shape[0]))
@@ -24,9 +25,10 @@ class Visualization:
         out.release()
 
     @staticmethod
-    def visualize_image_granulation(input_path, output_path):
-        image = cv2.imread(input_path)
-        granules, initial_colors, bounding_boxes = granulation.create_granules(image, 2)
+    def visualize_image_granulation(image, output_path, threshold=2):
+        if type(image).__name__ == 'str':
+            image = cv2.imread(image)
+        granules, initial_colors, bounding_boxes = granulation.create_granules(image, threshold)
 
         for granule_index, bbox in bounding_boxes.items():
             minY, minX, maxY, maxX = bbox
