@@ -16,9 +16,9 @@ def compute_3D_difference_matrix(frames):
     return np.array(difference)
 
 
-video = video_loader.load_frames_from_mp4('../data/spoon.mp4')[:20]
-print(video[0].shape)
+video = video_loader.load_frames_from_mp4('../data/moving_ball.mp4')[:3]
+print(len(video))
 difference = compute_3D_difference_matrix(video)
 
-Visualization.visualize_video_granulation(difference, "../results/difference_granulation_spoon_th2.avi", 2)
-# Visualization.visualize_image_granulation(difference[5], "../results/diff_spoon_th200.jpg", 200)
+Visualization.visualize_video_granulation(video, "../results/granulation_ball_full_test.avi", 200)
+# Visualization.visualize_image_granulation(video[2], "../results/ball_th350_test.jpg", 350)
