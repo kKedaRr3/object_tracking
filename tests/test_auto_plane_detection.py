@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from preprocessing.frame_loader import load_frames_from_folder
-from preprocessing.background_subtraction import three_point_approximation
+from preprocessing.temporal_segmentation import three_point_approximation
 from preprocessing.mask_utils import clean_noise
 
 

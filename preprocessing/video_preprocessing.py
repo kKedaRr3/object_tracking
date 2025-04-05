@@ -1,5 +1,6 @@
 import numpy as np
 import video_loader
+from preprocessing.temporal_segmentation import three_point_approximation
 from utils.visualization import Visualization
 import cv2
 
@@ -30,8 +31,10 @@ def compute_median_matrix(difference_3D_matrix):
 
     return median_matrix
 
-# video = video_loader.load_frames_from_mp4('../data/spoon.mp4')
-# print(len(video))
+video = video_loader.load_frames_from_mp4('../data/spoon.mp4')
+background = three_point_approximation(video[1:4], video[4], 3.0)
+cv2.imwrite('../results/spoon_background.jpg', background)
+
 # difference = compute_3D_difference_matrix(video[:3], video[3])
 # median_matrix = compute_median_matrix(difference)
 #

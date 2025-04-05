@@ -6,7 +6,7 @@ import numpy as np
 from preprocessing.frame_extractor import video_to_frames
 from preprocessing.frame_loader import load_frames_from_folder
 from preprocessing.grayscale import convert_to_grayscale
-from preprocessing.background_subtraction import three_point_approximation
+from preprocessing.temporal_segmentation import three_point_approximation
 from preprocessing.thresholding import simple_threshold, otsu_threshold, adaptive_threshold
 
 def test_preprocessing_pipeline():
