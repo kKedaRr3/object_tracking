@@ -1,19 +1,16 @@
 import numpy as np
 
-'''Funkcja do sprawdzania podobiensta kolorow'''
-
 
 def colour_nearness(color1, color2, threshold):
-    distance = np.linalg.norm(np.array(color1) - np.array(color2))
-    return distance < threshold
-
-
-'''Funkcja tworzaca granule  wersja chyba bez nakladajacych sie na siebie granuli'''
+    '''Funkcja do sprawdzania podobiensta kolorow'''
+    return np.linalg.norm(np.array(color1) - np.array(color2)) < threshold
 
 
 def create_granules(image, threshold):
+    '''Funkcja tworzaca granule  wersja chyba bez nakladajacych sie na siebie granuli'''
+
     height, width = image.shape[:2]
-    granules = [[None for _ in range(width)] for _ in range(height)]
+    granules = np.full((height, width), None)
     initial_colors = dict()
     bounding_boxes = dict()
     granule_index = 0
@@ -28,7 +25,7 @@ def create_granules(image, threshold):
             queue = [(y, x)]
             while queue:
                 current_y, current_x = queue.pop(0)
-                for (off_set_y, off_set_x) in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
+                for (off_set_y, off_set_x) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
                     neighbor_y, neighbor_x = current_y + off_set_y, current_x + off_set_x
                     if 0 <= neighbor_y < height and 0 <= neighbor_x < width and np.all(
                             image[neighbor_y][neighbor_x]) != 0:
@@ -52,7 +49,7 @@ i na tej podstawie tworzy granule, które będą analizowane pod kątem zmian w 
 '''
 
 
-def form_spatiotemporal_granules(frames, threshold, p):
+def form_spatiotemporal_granules(frames, threshold):
     prev_taus = []
     # granule dla ostatniej klatki
     granules_last, initial_colors_last, bounding_boxes_last = create_granules(frames[-1], threshold)
@@ -61,15 +58,36 @@ def form_spatiotemporal_granules(frames, threshold, p):
         granules, initial_colors, bounding_boxes = create_granules(frames[i], threshold)
         prev_taus.append((granules, initial_colors, bounding_boxes))
 
+    # tutaj ma byc taka petla ktora przechodzi po p wczesniejszych klatkach ktore to juz sa w frames
+    # frames nie jest calym filmem tylko lista klatek od 0 do p
     max = find_max_granule_index(granules_last)
     for granule_index in range(max):
         if granule_index % 10 == 0: print(f"Przetwarzanie granuli {granule_index}/{max}")
-        recurrent_function(granule_index, granules_last, initial_colors_last[granule_index],
-                           bounding_boxes_last[granule_index], prev_taus, threshold)
+        # recurrent_function(granule_index, granules_last, initial_colors_last[granule_index],
+        #                    bounding_boxes_last[granule_index], prev_taus, threshold)
+        iterated_function(granule_index, granules_last, initial_colors_last[granule_index],
+                          bounding_boxes_last[granule_index], prev_taus, threshold)
 
     prev_taus.append((granules_last, initial_colors_last, bounding_boxes_last))
-
     return prev_taus
+
+
+# w prev_taus jest p wczesniejszych klatek jesli p = 3 to np porowunje 3 klatki do tylu wzgledem klatki bierzacej
+# current_tau_granules, current_granule_colour, current_granule_bbox to sa wlasnie wlasciwosci bierzacej klatki
+# granule_index to jest walsnie przetwarzana granula z bierzacej klatki
+def iterated_function(granule_index, current_tau_granules, current_granule_colour, current_granule_bbox, prev_taus,
+                      threshold):
+    for prev_tau in prev_taus:
+        max_index = find_max_granule_index(prev_tau[0])
+        if granule_index > max_index:
+            continue
+        # przechodzenie po wszystkich granulach klatki z grupy klatek
+        for prev_granule_index in range(max_index):
+            # nachodzenie sie przetwarzanej granuli przetwarzanej klatki (z grupy p klatek) z granula z bierzacej klatki
+            is_overlap = is_overlapping(current_granule_bbox, prev_tau[2][prev_granule_index])
+            if colour_nearness(current_granule_colour, prev_tau[1][prev_granule_index], threshold) and is_overlap:
+                prev_tau[1][prev_granule_index] = current_granule_colour
+                merge_granules(granule_index, prev_granule_index, prev_tau[0], prev_tau[2][prev_granule_index])
 
 
 def recurrent_function(granule_index, current_tau_granules, current_granule_colour, current_granule_bbox, prev_taus,
@@ -101,7 +119,6 @@ def is_overlapping(bbox1, bbox2):
 
 def merge_granules(granule_index, prev_granule_index, granules, bounding_box):
     minY, minX, maxY, maxX = bounding_box
-
     for y in range(minY, maxY + 1):
         for x in range(minX, maxX + 1):
             if prev_granule_index == granules[y][x]:

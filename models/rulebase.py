@@ -1,45 +1,42 @@
-class RoughRuleBase:
-    def __init__(self):
-        """
-        Przechowuje reguły w formie:
-        self.rules = [
-            {
-               "sp_tmp": "Be"/"NB"/"PB"/"CC",
-               "rgb":    "Be"/"NB"/"PB"/"CC",
-               "depth":  "Be"/"NB"/"PB"/"CC",
-               "decision": "O" (object) lub "B" (background)
-            },
-            ...
-        ]
-        """
-        self.rules = []
+def initialize_rule_base(spatio_temporal_granules, rgb_d_granules, threshold):
+    rule_base = []
 
-    def add_rule(self, sp_tmp, rgb, depth, decision):
-        new_rule = {
-            "sp_tmp": sp_tmp,
-            "rgb": rgb,
-            "depth": depth,
-            "decision": decision
-        }
-        self.rules.append(new_rule)
+    for granule in spatio_temporal_granules:
+        for color_granule in rgb_d_granules:
+            rule = classify_granule(granule, color_granule, threshold)
+            rule_base.append(rule)
 
-    def classify_granule(self, sp_val, rgb_val, depth_val):
-        """
-        Przykładowa metoda, która na podstawie atrybutów
-        zwraca 'O' lub 'B'.
-        """
-        for rule in self.rules:
-            if (rule["sp_tmp"] == sp_val and
-                rule["rgb"]    == rgb_val and
-                rule["depth"]  == depth_val):
-                return rule["decision"]
-        # Jeśli brak dopasowania, np. tło
-        return "B"
+    return rule_base
 
-    def update_rules(self, new_info):
-        """
-        Gdy flow graph pokazuje duże zmiany, możemy
-        zaktualizować pewne reguły na podstawie new_info.
-        Tutaj kod jest symboliczny.
-        """
-        pass
+#TODO depth to bedzie srednia z RGB to znaczy (R + G + B) / 3
+def classify_granule(spatio_temporal_granule, rgb_d_granule, spt_threshold, c_threshold):
+    decision = ""
+    spatio_temporal_similarity = check_spatio_temporal_similarity(spatio_temporal_granule, spt_threshold)
+    color_similarity = check_color_similarity(rgb_d_granule, c_threshold)
+
+
+
+def check_spatio_temporal_similarity(spatio_temporal_granule, spt_threshold):
+    pass
+
+def check_color_similarity(rgb_d_granule, c_threshold):
+    pass
+
+
+def add_rule(self, sp_tmp, rgb, depth, decision):
+    new_rule = {
+        "sp_tmp": sp_tmp,
+        "rgb": rgb,
+        "depth": depth,
+        "decision": decision
+    }
+    self.rules.append(new_rule)
+
+
+def update_rules(self, new_info):
+    """
+    Gdy flow graph pokazuje duże zmiany, możemy
+    zaktualizować pewne reguły na podstawie new_info.
+    Tutaj kod jest symboliczny.
+    """
+    pass

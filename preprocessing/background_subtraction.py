@@ -8,10 +8,9 @@ def three_point_approximation(frames_3, current_frame, e=3.0):
     Zwraca maskę binarną (1 = obiekt, 0 = tło).
     """
     f1, f2, f3 = frames_3  # 3 poprzednie klatki
-    # optymistyczna, mediana, pesymistyczna:
     optimistic = np.max(np.stack([f1, f2, f3]), axis=0)
-    pessimistic = np.min(np.stack([f1, f2, f3]), axis=0)
     median_val = np.median(np.stack([f1, f2, f3]), axis=0)
+    pessimistic = np.min(np.stack([f1, f2, f3]), axis=0)
 
     # approx mean i approx std
     mean_est = (optimistic + 4*median_val + pessimistic) / 6.0
