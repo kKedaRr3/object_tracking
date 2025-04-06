@@ -8,7 +8,7 @@ def morphological_close(mask, kernel_size=5):
     """
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
     closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-    return (closed > 0).astype(np.uint8)
+    return (closed > 0).astype(np.uint8) * 255
 
 def morphological_open(mask, kernel_size=5):
     """
@@ -17,7 +17,7 @@ def morphological_open(mask, kernel_size=5):
     """
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
     opened = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    return (opened > 0).astype(np.uint8)
+    return (opened > 0).astype(np.uint8) * 255
 
 def combine_morph(mask, open_size=3, close_size=5):
     """
@@ -25,7 +25,7 @@ def combine_morph(mask, open_size=3, close_size=5):
     """
     temp = morphological_open(mask, kernel_size=open_size)
     result = morphological_close(temp, kernel_size=close_size)
-    return result
+    return result * 255
 
 def find_largest_contour_bbox(mask):
     """

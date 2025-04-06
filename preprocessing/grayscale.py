@@ -1,5 +1,4 @@
 import cv2
-import numpy as np
 
 def convert_to_grayscale(frame):
     """

@@ -1,6 +1,7 @@
 import numpy as np
 import video_loader
 from preprocessing.temporal_segmentation import three_point_approximation
+from preprocessing.mask_utils import find_largest_contour_bbox, morphological_open, morphological_close
 from utils.visualization import Visualization
 import cv2
 
@@ -32,8 +33,12 @@ def compute_median_matrix(difference_3D_matrix):
     return median_matrix
 
 video = video_loader.load_frames_from_mp4('../data/spoon.mp4')
-background = three_point_approximation(video[1:4], video[4], 3.0)
-cv2.imwrite('../results/spoon_background.jpg', background)
+background = three_point_approximation(video[15:18], video[17], 5.0) # bylo video[4]
+
+# background = morphological_close(background, 7)
+#kocham justynke w chuj mocno jest zajebista i najlepsza na swiecie nie ma lepszej jak ona justyska moja kochana piekna bejba jasnwy glincior
+
+cv2.imwrite('../results/hand_background.jpg', background)
 
 # difference = compute_3D_difference_matrix(video[:3], video[3])
 # median_matrix = compute_median_matrix(difference)

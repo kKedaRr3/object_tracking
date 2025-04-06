@@ -1,5 +1,6 @@
 from preprocessing import video_preprocessing
 from preprocessing.granulation import form_spatiotemporal_granules, create_granules
+from preprocessing.temporal_segmentation import three_point_approximation
 from preprocessing.video_preprocessing import compute_3D_difference_matrix, compute_median_matrix
 from models.rulebase import RoughRuleBase, initialize_rule_base
 
@@ -24,15 +25,15 @@ def object_tracking(frames, threshold=2, p=3):
     median_matrix = compute_median_matrix(diff_3D_matrix)
     spatio_temporal_granules = create_granules(median_matrix, threshold)
 
-    estimate_background = estimate_background() # TODO
+    estimated_background = three_point_approximation(frames[p-3:p], subsequent_frame, threshold)
     # spatio_temporal_granules = form_spatiotemporal_granules(median_matrix, threshold)     to chyba w ogole nie jest potrzebne w sensie ta funkcja
 
 
     rgb_d_granules = create_granules(subsequent_frame, threshold)
-    subsequent_spatio_colour_granules = create_granules(subsequent_frame, threshold)
+    subsequent_spatio_colour_granules = create_granules(subsequent_frame, threshold) # TODO tutaj chyba cos nie tak
 
     # 3. Obliczanie Rule-base
-    rule_base = initialize_rule_base(spatio_temporal_granules, rgb_d_granules) #TODO
+    rule_base = initialize_rule_base(spatio_temporal_granules, rgb_d_granules, estimated_background) #TODO
 
     # 4. Generowanie flow-grapha dla kolejnej klatki
     flow_graph = generate_initial_flow_graph(subsequent_spatio_colour_granules, rule_base) # TODO

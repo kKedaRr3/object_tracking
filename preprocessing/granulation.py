@@ -7,7 +7,7 @@ def colour_nearness(color1, color2, threshold):
 
 
 def create_granules(image, threshold):
-    '''Funkcja tworzaca granule  wersja chyba bez nakladajacych sie na siebie granuli'''
+    '''Funkcja tworzaca granule'''
 
     height, width = image.shape[:2]
     granules = np.full((height, width), None)
@@ -39,14 +39,8 @@ def create_granules(image, threshold):
                             bounding_boxes[granule_index][3] = max(bounding_boxes[granule_index][3], neighbor_x)  # maxX
             granule_index += 1
     print("Frame Processed")
-    return granules, initial_colors, bounding_boxes
+    return (granules, initial_colors, bounding_boxes)
 
-
-'''
-p - Odnosi się do liczby klatek, które są uwzględniane w analizie różnic pomiędzy klatkami. 
-Oznacza to, że algorytm bierze pod uwagę p poprzednich klatek (w tym przypadku różnicę między bieżącą klatką a poprzednimi p klatkami) 
-i na tej podstawie tworzy granule, które będą analizowane pod kątem zmian w czasie.
-'''
 
 
 def form_spatiotemporal_granules(frames, threshold):
