@@ -36,7 +36,6 @@ video = video_loader.load_frames_from_mp4('../data/spoon.mp4')
 background = three_point_approximation(video[15:18], video[17], 5.0) # bylo video[4]
 
 # background = morphological_close(background, 7)
-#kocham justynke w chuj mocno jest zajebista i najlepsza na swiecie nie ma lepszej jak ona justyska moja kochana piekna bejba jasnwy glincior
 
 cv2.imwrite('../results/hand_background.jpg', background)
 
