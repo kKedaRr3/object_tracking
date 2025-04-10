@@ -1,8 +1,4 @@
 import numpy as np
-import video_loader
-from preprocessing.temporal_segmentation import three_point_approximation
-from preprocessing.mask_utils import find_largest_contour_bbox, morphological_open, morphological_close
-from utils.visualization import Visualization
 import cv2
 
 
@@ -31,12 +27,3 @@ def compute_median_matrix(difference_3D_matrix):
             median_matrix[y, x, 2] = np.median(pixel_values_b)  # Blue channel
 
     return median_matrix
-
-
-video = video_loader.load_frames_from_mp4('../data/spoon.mp4')
-# Visualization.visualize_video_granulation(difference, "../results/granulation_difference_spoon_test_3.avi", 350)
-
-gray = cv2.cvtColor(video[5], cv2.COLOR_RGB2GRAY)
-Visualization.visualize_image_granulation(gray, "../results/spoon/granules_no_bbox_gray_image_th2.jpg", 2, False, False)
-
-Visualization.visualize_image_granulation(video[5], "../results/spoon/granules_rgb_image_no_bbox_th50.jpg", 50, True, False)

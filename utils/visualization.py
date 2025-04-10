@@ -5,33 +5,38 @@ from preprocessing import granulation
 import cv2
 
 from preprocessing.granulation import find_max_granule_index
+from preprocessing.video_preprocessing import compute_3D_difference_matrix, compute_median_matrix
 
 
 class Visualization:
 
     @staticmethod
-    def visualize_video_granulation(frames, output_path, threshold=2, color=(0, 0, 0)):
-        if type(frames).__name__ == 'str':
-            frames = video_loader.load_frames_from_mp4(frames)
-        processed_frames = granulation.form_spatiotemporal_granules(frames, threshold)
+    def visualize_spatiotemporal_granules(frames, output_path, p, bbox=True, bbox_color=(255, 0, 0)):
+        if len(frames) <= 3:
+            raise Exception('Not enough frames to visualize')
+        diff_frames = compute_3D_difference_matrix(frames[:p], frames[p])
+        median_frame = compute_median_matrix(diff_frames)
+        threshold = 0.3 * np.max(median_frame)
 
-        out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'XVID'), 20.0,
-                              (frames[0].shape[1], frames[0].shape[0]))
+        print(threshold)
 
+        granules, initial_colors, bounding_boxes = granulation.form_spatiotemporal_granules(diff_frames, threshold)
 
-        for frame_index in range(len(frames)):
-            frame = frames[frame_index]
-            bounding_boxes = processed_frames[frame_index][2]
+        if bbox:
             for granule_index, bbox in bounding_boxes.items():
                 minY, minX, maxY, maxX = bbox
-                cv2.rectangle(frame, (minX, minY), (maxX, maxY), color, 1)
-
-            out.write(frame)
-        out.release()
-
+                cv2.rectangle(frames[np.floor(p / 2)], (minX, minY), (maxX, maxY), bbox_color, 1)
+            cv2.imwrite(output_path, frames[-1])
+        else:
+            result = np.zeros_like(frames[0])
+            for y in range(frames[0].shape[0]):
+                for x in range(frames[0].shape[1]):
+                    if granules[y, x] is not None:
+                        result[y, x] = initial_colors[granules[y, x]]
+            cv2.imwrite(output_path, result)
 
     @staticmethod
-    def visualize_image_granulation(image, output_path, threshold=2, rgb=True, bbox=True, bbox_color=(0, 0, 0)):
+    def visualize_spatio_color_granules(image, output_path, threshold=2, rgb=True, bbox=True, bbox_color=(0, 0, 0)):
         if type(image).__name__ == 'str':
             image = cv2.imread(image)
 
@@ -53,6 +58,3 @@ class Visualization:
                     if granules[y, x] is not None:
                         result[y, x] = initial_colors[granules[y, x]]
             cv2.imwrite(output_path, result)
-
-
-
