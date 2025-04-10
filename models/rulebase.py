@@ -23,17 +23,20 @@ def initialize_rule_base(spatio_temporal_granules, rgb_d_granules, background):
     rgb_d_max_index = find_max_granule_index(rgb_d_granules[0])
 
     # Dolne przybliżenie obiektu (O)
-    O = []  # Zbiór dla obiektów
+    O = {}  # Zbiór dla obiektów
     for granule_index in range(spt_max_index):
-        if is_object(spatio_temporal_granules[2][granule_index], background):
-            O.append(granule_index)
+        coverage = object_coverage(spatio_temporal_granules[2][granule_index], background)
+        if coverage > 0.9:
+            O[granule_index] = "Be"
+        else:
+            O[granule_index] = "NB"
 
     # Górne przybliżenie obiektu (O)
-    O_upper = {}  # Zbiór dla obiektów - górne przybliżenie
+    O_upper = {}
     for granule_index, granule in enumerate(spatio_temporal_granules[0]):
         # Jeśli granula jest częścią obiektu lub zmienia się w czasie
         if is_object(granule) or is_similar_to_previous(granule, spatio_temporal_granules[0]):
-            O_upper[granule_index] = granule
+            O_upper.append(granule)
 
     # Cechy temporalne (Frame difference in RGB-D feature space)
     temporal_features = {}
@@ -51,7 +54,7 @@ def initialize_rule_base(spatio_temporal_granules, rgb_d_granules, background):
         spatial_features[granule_index] = compute_spatial_location(granule)
 
     # Reguły dla bazy reguł
-    for granule_index in O:
+    for granule_index in O.keys():
         rule_base[granule_index] = {
             "temporal": temporal_features[granule_index],
             "color": color_features[granule_index],
@@ -67,17 +70,12 @@ def initialize_rule_base(spatio_temporal_granules, rgb_d_granules, background):
             "type": "object_upper"  # Przypisanie granuli jako górne przybliżenie obiektu
         }
 
-    # Dodanie tła do bazy reguł
-    for granule_index, granule in enumerate(background):
-        rule_base[granule_index] = {
-            "temporal": temporal_features.get(granule_index, None),
-            "color": color_features.get(granule_index, None),
-            "spatial": spatial_features.get(granule_index, None),
-            "type": "background"  # Przypisanie granuli jako tło
-        }
 
     return rule_base
 
+
+def object_coverage(granule, background):
+    pass
 
 # funkcja do sprawdzania czy granula jest obiektem (wszystkie jej wartosci w granicach bounding box sa rowne 0 [0 - obiekt, 255 - tlo])
 def is_object(bbox, background):

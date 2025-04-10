@@ -1,6 +1,10 @@
+import numpy as np
+
 from preprocessing import video_loader
 from preprocessing import granulation
 import cv2
+
+from preprocessing.granulation import find_max_granule_index
 
 
 class Visualization:
@@ -27,13 +31,28 @@ class Visualization:
 
 
     @staticmethod
-    def visualize_image_granulation(image, output_path, threshold=2, color=(0, 0, 0)):
+    def visualize_image_granulation(image, output_path, threshold=2, rgb=True, bbox=True, bbox_color=(0, 0, 0)):
         if type(image).__name__ == 'str':
             image = cv2.imread(image)
-        granules, initial_colors, bounding_boxes = granulation.create_granules(image, threshold)
 
-        for granule_index, bbox in bounding_boxes.items():
-            minY, minX, maxY, maxX = bbox
-            cv2.rectangle(image, (minX, minY), (maxX, maxY), color, 1)
+        if rgb:
+            granules, initial_colors, bounding_boxes = granulation.create_granules_color(image, threshold)
+        else:
+            granules, initial_colors, bounding_boxes = granulation.create_granules_gray(image, threshold)
 
-        cv2.imwrite(output_path, image)
+        if bbox:
+            for granule_index, bbox in bounding_boxes.items():
+                minY, minX, maxY, maxX = bbox
+                cv2.rectangle(image, (minX, minY), (maxX, maxY), bbox_color, 1)
+            cv2.imwrite(output_path, image)
+
+        else:
+            result = np.zeros_like(image)
+            for y in range(image.shape[0]):
+                for x in range(image.shape[1]):
+                    if granules[y, x] is not None:
+                        result[y, x] = initial_colors[granules[y, x]]
+            cv2.imwrite(output_path, result)
+
+
+

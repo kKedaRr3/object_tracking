@@ -32,15 +32,11 @@ def compute_median_matrix(difference_3D_matrix):
 
     return median_matrix
 
+
 video = video_loader.load_frames_from_mp4('../data/spoon.mp4')
-background = three_point_approximation(video[15:18], video[17], 5.0) # bylo video[4]
+# Visualization.visualize_video_granulation(difference, "../results/granulation_difference_spoon_test_3.avi", 350)
 
-# background = morphological_close(background, 7)
+gray = cv2.cvtColor(video[5], cv2.COLOR_RGB2GRAY)
+Visualization.visualize_image_granulation(gray, "../results/spoon/granules_no_bbox_gray_image_th2.jpg", 2, False, False)
 
-cv2.imwrite('../results/hand_background.jpg', background)
-
-# difference = compute_3D_difference_matrix(video[:3], video[3])
-# median_matrix = compute_median_matrix(difference)
-#
-# # Visualization.visualize_video_granulation(difference, "../results/granulation_difference_spoon_test_3.avi", 350)
-# Visualization.visualize_image_granulation(median_matrix, "../results/median_spoon_th10_test.jpg", 10, (255, 0, 0))
+Visualization.visualize_image_granulation(video[5], "../results/spoon/granules_rgb_image_no_bbox_th50.jpg", 50, True, False)

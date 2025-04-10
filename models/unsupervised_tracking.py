@@ -29,11 +29,11 @@ def object_tracking(frames, threshold=2, p=3):
     # spatio_temporal_granules = form_spatiotemporal_granules(median_matrix, threshold)     to chyba w ogole nie jest potrzebne w sensie ta funkcja
 
 
-    rgb_d_granules = create_granules(subsequent_frame, threshold)
+    rgb_granules = create_granules(subsequent_frame, threshold)
     subsequent_spatio_colour_granules = create_granules(subsequent_frame, threshold) # TODO tutaj chyba cos nie tak
 
     # 3. Obliczanie Rule-base
-    rule_base = initialize_rule_base(spatio_temporal_granules, rgb_d_granules, estimated_background) #TODO
+    rule_base = initialize_rule_base(spatio_temporal_granules, rgb_granules, estimated_background) #TODO
 
     # 4. Generowanie flow-grapha dla kolejnej klatki
     flow_graph = generate_initial_flow_graph(subsequent_spatio_colour_granules, rule_base) # TODO
