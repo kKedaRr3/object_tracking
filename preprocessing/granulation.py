@@ -1,56 +1,17 @@
 import numpy as np
-
+from numba import njit
 from preprocessing.video_preprocessing import compute_3D_difference_matrix, compute_median_matrix
 
+# def colour_nearness_rgb(color1, color2, threshold):
+#     '''Funkcja do sprawdzania podobiensta kolorow'''
+#     return np.linalg.norm(np.array(color1) - np.array(color2)) < threshold
 
-def colour_nearness_rgb(color1, color2, threshold):
-    '''Funkcja do sprawdzania podobiensta kolorow'''
-    return np.linalg.norm(np.array(color1) - np.array(color2)) < threshold
-
-
-def colour_nearness_gray(color1, color2, threshold):
-    return np.abs(int(color1) - color2) < threshold
-
-
-def create_granules_gray(image, threshold: int):
-    '''Funkcja tworzaca granule'''
-
-    height, width = image.shape
-
-    granules = np.full((height, width), fill_value=None)
-
-    initial_colors = dict()
-    bounding_boxes = dict()
-    granule_index = 0
-
-    for y in range(height):
-        if y % 10 == 0: print(f"Processed row {y}")
-        for x in range(width):
-            if image[y][x] == 0 or granules[y][x] is not None:
-                continue
-
-            granules[y, x] = granule_index
-            initial_colors[granule_index] = image[y][x]
-            bounding_boxes[granule_index] = [y, x, y, x]  # [minY, minX, maxY, maxX]
-
-            queue = [(y, x)]
-            while queue:
-                current_y, current_x = queue.pop(0)
-                for (off_set_y, off_set_x) in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
-                    neighbor_y, neighbor_x = current_y + off_set_y, current_x + off_set_x
-                    if 0 <= neighbor_y < height and 0 <= neighbor_x < width and image[neighbor_y][neighbor_x] != 0:
-                        if colour_nearness_gray(image[current_y][current_x], image[neighbor_y][neighbor_x],
-                                                threshold) and granules[neighbor_y][neighbor_x] is None:
-                            granules[neighbor_y][neighbor_x] = granule_index
-                            queue.append((neighbor_y, neighbor_x))
-                            bounding_boxes[granule_index][0] = min(bounding_boxes[granule_index][0], neighbor_y)  # minY
-                            bounding_boxes[granule_index][1] = min(bounding_boxes[granule_index][1], neighbor_x)  # minX
-                            bounding_boxes[granule_index][2] = max(bounding_boxes[granule_index][2], neighbor_y)  # maxY
-                            bounding_boxes[granule_index][3] = max(bounding_boxes[granule_index][3], neighbor_x)  # maxX
-            granule_index += 1
-    print("Frame Processed")
-    return (granules, initial_colors, bounding_boxes)
-
+@njit
+def colour_nearness_rgb(c1, c2, threshold):
+    dist = 0.0
+    for i in range(3):  # RGB
+        dist += (c1[i] - c2[i]) ** 2
+    return dist < threshold * threshold
 
 def create_granules_color(image, threshold: int):
     '''Funkcja tworzaca granule'''
@@ -67,7 +28,6 @@ def create_granules_color(image, threshold: int):
             if np.all(image[y][x]) == 0 or granules[y][x] is not None:
                 continue
 
-            # granules[y, x] = granule_index
             initial_colors[granule_index] = image[y][x]
             bounding_boxes[granule_index] = [y, x, y, x]  # [minY, minX, maxY, maxX]
             neighbor_found = False
@@ -93,7 +53,6 @@ def create_granules_color(image, threshold: int):
     print("Frame Processed")
     return (granules, initial_colors, bounding_boxes)
 
-
 def form_spatiotemporal_granules(frames, threshold):
 
     prev_taus = []
@@ -111,7 +70,7 @@ def form_spatiotemporal_granules(frames, threshold):
 
     return prev_taus[0][0], prev_taus[0][1], prev_taus[0][2]
 
-
+@njit
 def recurrent_function(granule_index, current_tau_granules, current_granule_colour, current_granule_bbox, prev_taus,
                        threshold):
     if len(prev_taus) in (0, 1):
@@ -138,7 +97,6 @@ def is_overlapping(bbox1, bbox2):
         return False
     return True
 
-
 def merge_granules(granule_index, prev_granule_index, granules, bounding_box):
     minY, minX, maxY, maxX = bounding_box
     for y in range(minY, maxY + 1):
@@ -146,7 +104,7 @@ def merge_granules(granule_index, prev_granule_index, granules, bounding_box):
             if prev_granule_index == granules[y][x]:
                 granules[y][x] = granule_index
 
-
+@njit
 def find_max_granule_index(granules):
     max = 0
     for y in range(len(granules)):
@@ -155,3 +113,16 @@ def find_max_granule_index(granules):
             if granules[y][x] > max:
                 max = granules[y][x]
     return max
+
+# TODO do sprawdzenia bo moze byc zle
+@njit
+def form_rgb_d_granules(sp_t_granules, sp_t_initial_colors, sp_t_bounding_boxes, threshold):
+    sp_t_image = np.zeros_like(sp_t_granules)
+    for y in range(sp_t_image.shape[0]):
+        for x in range(sp_t_image.shape[1]):
+            if sp_t_granules[y, x] is not None:
+                sp_t_image[y, x] = sp_t_initial_colors[sp_t_granules[y, x]]
+
+    granules, initial_colors, bounding_boxes = create_granules_color(sp_t_image, threshold)
+
+    return granules, initial_colors, bounding_boxes

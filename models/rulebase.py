@@ -2,18 +2,15 @@ from preprocessing.granulation import find_max_granule_index
 import numpy as np
 
 
-def initialize_rule_base(spatio_temporal_granules, rgb_d_granules, background):
+def initialize_rule_base(spatio_color_granules, spatio_temporal_granules, rgb_granules, d_granules):
 
     '''
-    Funkcja inicjalizujaca baze regul ale czy to ma tak byc to nie wiem
-    trzeba to zrobic na pdostawie strony 39 z magisterki
-    jesli wszsystkie piksele z spt/rgb-d granuli znajduja sie w obiekcie(obiekt wiekszy od granuli) to jest BE
-    jesli czesc pikseli z spt/rgb-d granuli znajduja sie w obiekcie to jest PB
-    jesli zadne piksele z spt/rgb-d lub za malo piskeli znajduja sie w obiekcie to jest NB
-    jesli wszystkie piksele z obiektu znajduja sie w spt/rgb-d granuli(granula wieksza niz obiekt) to jest CC
-    :param spatio_temporal_granules: granule [0] czasowo przestrzenne z ich granicami [2] i kolorami [1]
-    :param rgb_d_granules: granule rgb i glebokosci
-    :param background: binarny obraz tla klatki otrzymany przez three-point-approximation
+    Trzeba porownac spatio_color granules(otrzymane z create_granules) z spatio-temporal granules(otrzymane z form_spatiotemporal_granules) rgb_granules(otrzymane z form_rgb_d_granules) i d_granules
+
+    :param spatio_color_granules:
+    :param spatio_temporal_granules:
+    :param rgb_granules:
+    :param d_granules:
     :return: poczatkowa baza regul
     '''
 
