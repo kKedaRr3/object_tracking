@@ -36,10 +36,9 @@ class Visualization:
         if type(image).__name__ == 'str':
             image = cv2.imread(image)
 
-        if rgb:
-            granules, initial_colors, bounding_boxes = granulation.create_granules_color(image, threshold)
-        else:
-            granules, initial_colors, bounding_boxes = granulation.create_granules_gray(image, threshold)
+
+        granules, initial_colors, bounding_boxes = granulation.create_granules_color(image, threshold)
+
 
         if bbox:
             for granule_index, bbox in bounding_boxes.items():
