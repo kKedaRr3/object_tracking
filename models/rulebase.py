@@ -1,7 +1,7 @@
 from preprocessing.granulation import find_max_granule_index
 import numpy as np
 
-def initialize_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
+def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
 
     '''
     Trzeba porownac spatio_color granules(otrzymane z create_granules) z spatio-temporal granules(otrzymane z form_spatiotemporal_granules) rgb_granules(otrzymane z form_rgb_d_granules) i d_granules
@@ -10,7 +10,7 @@ def initialize_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
     :param spatio_temporal_gib:
     :param rgb_gib:
     :param d_gib:
-    :return: poczatkowa baza regul gdzie 2 to objekt, 1 to tlo a 0 to niezidentyfikowany obiekt
+    :return: poczatkowa baza regul gdzie 2 to objekt, 1 to tlo a 0 to niezidentyfikowany
     '''
 
     height, width = rgb_gib[0].shape
