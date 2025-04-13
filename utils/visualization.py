@@ -1,4 +1,7 @@
+import networkx as nx
 import numpy as np
+from matplotlib import pyplot as plt
+
 from preprocessing import video_loader
 from preprocessing import granulation
 import cv2
@@ -36,9 +39,7 @@ class Visualization:
         if type(image).__name__ == 'str':
             image = cv2.imread(image)
 
-
         granules, initial_colors, bounding_boxes = granulation.create_granules_color(image, threshold)
-
 
         if bbox:
             for granule_index, bbox in bounding_boxes.items():
@@ -63,7 +64,8 @@ class Visualization:
         threshold = 0.3 * np.max(median_frame)
 
         granules, initial_colors, bounding_boxes = granulation.form_spatiotemporal_granules(diff_frames, threshold)
-        rgb_granules, rgb_initial_colors, rgb_bounding_boxes = form_rgb_d_granules(granules, initial_colors, bounding_boxes, threshold)
+        rgb_granules, rgb_initial_colors, rgb_bounding_boxes = form_rgb_d_granules(granules, initial_colors,
+                                                                                   bounding_boxes, threshold)
 
         if bbox:
             for granule_index, bbox in rgb_bounding_boxes.items():
@@ -77,3 +79,31 @@ class Visualization:
                     if granules[y, x] is not None:
                         result[y, x] = rgb_initial_colors[rgb_granules[y, x]]
             cv2.imwrite(output_path, result)
+
+    @staticmethod
+    def draw_flow_graph(graph):
+        pos = {
+            "O": (0, 1),
+            "B": (0, -1),
+
+            "NBT": (3, 3),
+            "CCT": (3, 1),
+            "PBT": (3, -1),
+            "BeT": (3, -3),
+
+            "NBR": (6, 3),
+            "PBR": (6, -1),
+            "BeR": (6, -3),
+
+            "NBD": (9, 3),
+            "CCD": (9, 1),
+            "PBD": (9, -1),
+            "BeD": (9, -3),
+
+            "D1": (12, 1),
+            "D2": (12, -1)
+        }
+        edge_labels = nx.get_edge_attributes(graph, 'weight')
+        nx.draw(graph, pos, with_labels=True)
+        nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
+        plt.show()

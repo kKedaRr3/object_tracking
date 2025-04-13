@@ -22,7 +22,7 @@ def object_tracking(frames, threshold=2, p=3):
 
     rgb_gib = form_rgb_d_granules(spatio_temporal_gib[0], spatio_temporal_gib[1], spatio_temporal_gib[2], threshold)
 
-    initial_depth_frames, subsequent_depth_frame = None, None  # TODO Pobrac jakies wideo ktore ma 4 kanaly RGBD
+    initial_depth_frames, subsequent_depth_frame = None, None  # TODO Pobrac jakies wideo ktore ma 4 kanaly (RGB i D)
     depth_diff_3D_matrix = compute_3D_difference_matrix(initial_depth_frames, subsequent_depth_frame)
     depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
     d_gib = create_granules_color(depth_median_matrix, threshold)
@@ -30,9 +30,9 @@ def object_tracking(frames, threshold=2, p=3):
     # do porownywania z sp_t rgb i d granules w celu utworzenia bazy regul
     subsequent_spatio_colour_gib = create_granules_color(subsequent_frame, threshold)
 
-    rule_base = generate_rule_base(subsequent_spatio_colour_gib, spatio_temporal_gib, rgb_gib, d_gib)
+    rule_base, features = generate_rule_base(subsequent_spatio_colour_gib, spatio_temporal_gib, rgb_gib, d_gib)
 
-    flow_graph = generate_flow_graph(rule_base)  # TODO
+    flow_graph = generate_flow_graph(rule_base, features)  # TODO
 
     foreground = segment_foreground(rule_base)  # TODO
 
@@ -43,11 +43,11 @@ def object_tracking(frames, threshold=2, p=3):
 
         current_spatio_colour_granules = create_granules(current_frame, threshold)
 
-        rule_base = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
+        rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
 
-        coverage = compute_rule_base_coverage(flow_graph, rule_base)
+        coverage = compute_rule_base_coverage(flow_graph, rule_base, features)
         #TODO
-        # tutaj flow_graph to bedzie ten treningowy a z rule_base trzbea
+        # tutaj flow_graph to bedzie ten treningowy a z rule_base i features trzbea
         # bedzie zrobic testowy czyli ten wynikajacy ze stanu faktycznego
         # flow_graph jest to jen z wczesniejszej klatki
 
@@ -69,8 +69,8 @@ def object_tracking(frames, threshold=2, p=3):
                 depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
                 d_gib = create_granules_color(depth_median_matrix, threshold)
 
-            rule_base = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
-            flow_graph = generate_flow_graph(rule_base)  # TODO
+            rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
+            flow_graph = generate_flow_graph(rule_base, features)  # TODO
 
         foreground = segment_foreground(rule_base) # TODO
 

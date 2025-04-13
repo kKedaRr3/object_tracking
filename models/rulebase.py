@@ -23,9 +23,10 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
             label = spatio_color_gib[0][y][x]
             # Maska pojedynczej granuli spatio_color
             spatio_color_granule = spatio_temporal_gib[0][y][x] == label
-            spatiotemporal_features = calculate_attribute(spatio_color_granule, spatio_temporal_gib[0], x, y)
-            rgb_features = calculate_attribute(spatio_color_granule, rgb_gib[0], x, y)
-            d_features = calculate_attribute(spatio_color_granule, d_gib[0], x, y)
+            # to jest zle bo features sa co chwile aktualizowane
+            spatiotemporal_features = calculate_attribute(spatio_color_granule, spatio_temporal_gib[0], y, x)
+            rgb_features = calculate_attribute(spatio_color_granule, rgb_gib[0], y, x)
+            d_features = calculate_attribute(spatio_color_granule, d_gib[0], y, x)
 
     result_object = np.logical_or(
         np.logical_and.reduce((spatiotemporal_features == 1, rgb_features == 2), (d_features == 2)),
@@ -44,11 +45,13 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
         np.logical_and.reduce((spatiotemporal_features == 2, rgb_features == 0, d_features == 0)),
     )
 
+    features = (spatiotemporal_features, rgb_features, d_features)
+
     rule_base = np.zeros_like(result_object, np.uint8)
     rule_base[result_object] = 2
     rule_base[result_background] = 1
 
-    return rule_base
+    return rule_base, features
 
 
 def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x):
