@@ -26,18 +26,21 @@ def object_tracking(frames, threshold=2, p=3):
     median_matrix = compute_median_matrix(diff_3D_matrix)
     med_threshold = 0.3 * np.max(median_matrix)
 
-    spatio_temporal_granules, sp_t_initial_colors, sp_t_bounding_boxes = form_spatiotemporal_granules(diff_3D_matrix, med_threshold)
+    # _gib bo ktotka z granules(g), initial_colors(i) i bounding_boxes(b)
+    spatio_temporal_gib = form_spatiotemporal_granules(diff_3D_matrix, med_threshold)
 
-    rgb_granules = form_rgb_d_granules(spatio_temporal_granules, sp_t_initial_colors, sp_t_bounding_boxes, threshold)
+    rgb_gib = form_rgb_d_granules(spatio_temporal_gib[0], spatio_temporal_gib[1], spatio_temporal_gib[2], threshold)
 
-    depth_median_matrix = None # TODO Pobrac jakies wideo ktore ma 4 kanaly RGBD
-    d_granules = create_granules(depth_median_matrix, threshold)
+    initial_depth_frames, subsequent_depth_frame = None, None  # TODO Pobrac jakies wideo ktore ma 4 kanaly RGBD
+    depth_diff_3D_matrix = compute_3D_difference_matrix(initial_depth_frames, subsequent_depth_frame)
+    depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
+    d_gib = create_granules(depth_median_matrix, threshold)
 
     #do porownywania z sp_t rgb i d granules w celu utworzenia bazy regul
-    subsequent_spatio_colour_granules = create_granules(subsequent_frame, threshold)
+    subsequent_spatio_colour_gib = create_granules(subsequent_frame, threshold)
 
     # 3. Obliczanie Rule-base
-    rule_base = initialize_rule_base(subsequent_spatio_colour_granules, spatio_temporal_granules, rgb_granules, d_granules) # TODO
+    rule_base = initialize_rule_base(subsequent_spatio_colour_gib, spatio_temporal_gib, rgb_gib, d_gib)
 
     # 4. Generowanie flow-grapha dla kolejnej klatki
     flow_graph = generate_initial_flow_graph(subsequent_spatio_colour_granules, rule_base) # TODO

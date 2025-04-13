@@ -1,96 +1,83 @@
 from preprocessing.granulation import find_max_granule_index
 import numpy as np
 
-
-def initialize_rule_base(spatio_color_granules, spatio_temporal_granules, rgb_granules, d_granules):
+def initialize_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
 
     '''
     Trzeba porownac spatio_color granules(otrzymane z create_granules) z spatio-temporal granules(otrzymane z form_spatiotemporal_granules) rgb_granules(otrzymane z form_rgb_d_granules) i d_granules
 
-    :param spatio_color_granules:
-    :param spatio_temporal_granules:
-    :param rgb_granules:
-    :param d_granules:
-    :return: poczatkowa baza regul
+    :param spatio_color_gib:
+    :param spatio_temporal_gib:
+    :param rgb_gib:
+    :param d_gib:
+    :return: poczatkowa baza regul gdzie 2 to objekt, 1 to tlo a 0 to niezidentyfikowany obiekt
     '''
 
-    rule_base = {}
+    height, width = rgb_gib[0].shape
+    spatiotemporal_features = np.zeros_like(spatio_color_gib[0])
+    rgb_features = np.zeros_like(spatio_color_gib[0])
+    d_features = np.zeros_like(spatio_color_gib[0])
 
-    spt_max_index = find_max_granule_index(spatio_temporal_granules[0])
-    rgb_d_max_index = find_max_granule_index(rgb_d_granules[0])
+    for y in range(height):
+        for x in range(width):
+            label = spatio_color_gib[0][y][x]
+            # Maska pojedynczej granuli spatio_color
+            spatio_color_granule = spatio_temporal_gib[0][y][x] == label
+            spatiotemporal_features = calculate_attribute(spatio_color_granule, spatio_temporal_gib[0], x, y)
+            rgb_features = calculate_attribute(spatio_color_granule, rgb_gib[0], x, y)
+            d_features = calculate_attribute(spatio_color_granule, d_gib[0], x, y)
 
-    # Dolne przybliżenie obiektu (O)
-    O = {}  # Zbiór dla obiektów
-    for granule_index in range(spt_max_index):
-        coverage = object_coverage(spatio_temporal_granules[2][granule_index], background)
-        if coverage > 0.9:
-            O[granule_index] = "Be"
-        else:
-            O[granule_index] = "NB"
+    result_object = np.logical_or(
+        np.logical_and.reduce((spatiotemporal_features == 1, rgb_features == 2), (d_features == 2)),
+        np.logical_and.reduce((spatiotemporal_features == 2, rgb_features == 2), (d_features == 1)),
+        np.logical_and.reduce((spatiotemporal_features == 3, rgb_features == 2, d_features == 2)),
+        np.logical_and.reduce((spatiotemporal_features == 2, rgb_features == 0, d_features == 0)),
+        np.logical_and.reduce((spatiotemporal_features == 1, rgb_features == 1, d_features == 3)),
+        np.logical_and.reduce((spatiotemporal_features == 2, rgb_features == 2, d_features == 2)),
+    )
 
-    # Górne przybliżenie obiektu (O)
-    O_upper = {}
-    for granule_index, granule in enumerate(spatio_temporal_granules[0]):
-        # Jeśli granula jest częścią obiektu lub zmienia się w czasie
-        if is_object(granule) or is_similar_to_previous(granule, spatio_temporal_granules[0]):
-            O_upper.append(granule)
+    result_background = np.logical_or.reduce(
+        np.logical_and.reduce((spatiotemporal_features == 0, rgb_features == 0, d_features == 0)),
+        np.logical_and.reduce((spatiotemporal_features == 0, rgb_features == 2, d_features == 2)),
+        np.logical_and.reduce((spatiotemporal_features == 1, rgb_features == 2, d_features == 1)),
+        np.logical_and.reduce((spatiotemporal_features == 0, rgb_features == 0, d_features == 2)),
+        np.logical_and.reduce((spatiotemporal_features == 2, rgb_features == 0, d_features == 0)),
+    )
 
-    # Cechy temporalne (Frame difference in RGB-D feature space)
-    temporal_features = {}
-    for granule_index, granule in enumerate(spatio_temporal_granules[0]):
-        temporal_features[granule_index] = compute_temporal_features(granule)
-
-    # Cechy koloru (RGB-D values)
-    color_features = {}
-    for granule_index, granule in enumerate(rgb_d_granules[0]):
-        color_features[granule_index] = compute_color_features(granule)
-
-    # Cechy przestrzenne (Spatial location)
-    spatial_features = {}
-    for granule_index, granule in enumerate(spatio_temporal_granules[0]):
-        spatial_features[granule_index] = compute_spatial_location(granule)
-
-    # Reguły dla bazy reguł
-    for granule_index in O.keys():
-        rule_base[granule_index] = {
-            "temporal": temporal_features[granule_index],
-            "color": color_features[granule_index],
-            "spatial": spatial_features[granule_index],
-            "type": "object"  # Przypisanie granuli jako obiekt
-        }
-
-    for granule_index in O_upper.keys():
-        rule_base[granule_index] = {
-            "temporal": temporal_features[granule_index],
-            "color": color_features[granule_index],
-            "spatial": spatial_features[granule_index],
-            "type": "object_upper"  # Przypisanie granuli jako górne przybliżenie obiektu
-        }
-
+    rule_base = np.zeros_like(result_object, np.uint8)
+    rule_base[result_object] = 2
+    rule_base[result_background] = 1
 
     return rule_base
 
 
-def object_coverage(granule, background):
-    pass
+def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x):
+    label = granules_to_calculate[y][x]
+    granule = granules_to_calculate == label
+    intersection = np.logical_and(spatio_color_granule, granule)
+    return get_attribute(spatio_color_granule, granule, intersection)
 
-# funkcja do sprawdzania czy granula jest obiektem (wszystkie jej wartosci w granicach bounding box sa rowne 0 [0 - obiekt, 255 - tlo])
-def is_object(bbox, background):
-    minY, minX, maxY, maxX = bbox
-    return np.all(background[minY:maxY+1, minX:maxX+1]) == 0
 
-def is_similar_to_previous(granule, granules):
-    # Funkcja do sprawdzenia, czy granula jest podobna do poprzednich
-    return True  # Należy wprowadzić odpowiednią logikę porównania
+def get_attribute(spatio_color_granule, granule, intersection):
+    '''
+    :param spatio_color_granule:
+    :param granule:
+    :param intersection:
+    :return: 0 to NB,   1 to PB,    2 to Be,    3, to CC
+    '''
 
-def compute_temporal_features(granule):
-    # Funkcja do obliczania cech temporalnych (różnice między klatkami)
-    return {"temporal_feature": 0}  # Zwraca przykładowe cechy
+    sum_intersection = np.sum(intersection)
+    sum_spatio_color_granule = np.sum(spatio_color_granule)
+    sum_granule = np.sum(granule)
 
-def compute_color_features(granule):
-    # Funkcja do obliczania cech koloru
-    return {"color_feature": 0}  # Zwraca przykładowe cechy
+    if sum_intersection == 0:
+        return 0
+    elif sum_spatio_color_granule >= sum_granule == sum_intersection:
+        return 3
+    elif sum_intersection == sum_spatio_color_granule < sum_granule:
+        return 2
+    elif sum_intersection < sum_spatio_color_granule:
+        return 1
+    else:
+        raise ValueError("Somehow, the intersection doesn't match the intersection of the two granule types.")
 
-def compute_spatial_location(granule):
-    # Funkcja do obliczania cech przestrzennych
-    return {"spatial_feature": (0, 0)}  # Zwraca przykładowe cechy
