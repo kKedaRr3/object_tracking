@@ -22,8 +22,8 @@ def create_granules_color(image, threshold: int):
                 continue
 
             # granules[y, x] = granule_index
-            initial_colors[granule_index] = image[y][x]
-            bounding_boxes[granule_index] = [y, x, y, x]  # [minY, minX, maxY, maxX]
+            # initial_colors[granule_index] = image[y][x]
+            # bounding_boxes[granule_index] = [y, x, y, x]  # [minY, minX, maxY, maxX]
             neighbor_found = False
             queue = [(y, x)]
             while queue:
@@ -35,6 +35,10 @@ def create_granules_color(image, threshold: int):
                         if colour_nearness_rgb(image[current_y][current_x], image[neighbor_y][neighbor_x],
                                            threshold) and granules[neighbor_y][neighbor_x] is None:
                             neighbor_found = True
+
+                            initial_colors[granule_index] = image[y][x]
+                            bounding_boxes[granule_index] = [y, x, y, x]
+
                             granules[neighbor_y][neighbor_x] = granule_index
                             queue.append((neighbor_y, neighbor_x))
                             bounding_boxes[granule_index][0] = min(bounding_boxes[granule_index][0], neighbor_y)  # minY
