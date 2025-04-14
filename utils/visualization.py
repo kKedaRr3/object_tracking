@@ -83,27 +83,28 @@ class Visualization:
     @staticmethod
     def draw_flow_graph(graph):
         pos = {
-            "O": (0, 1),
-            "B": (0, -1),
+            "O": (0, 2),
+            "B": (0, -2),
 
-            "NBT": (3, 3),
-            "CCT": (3, 1),
-            "PBT": (3, -1),
-            "BeT": (3, -3),
+            "NBT": (4, 6),
+            "CCT": (4, 2),
+            "PBT": (4, -2),
+            "BeT": (4, -6),
 
-            "NBR": (6, 3),
-            "PBR": (6, -1),
-            "BeR": (6, -3),
+            "NBR": (8, 6),
+            "PBR": (8, -2),
+            "BeR": (8, -6),
 
-            "NBD": (9, 3),
-            "CCD": (9, 1),
-            "PBD": (9, -1),
-            "BeD": (9, -3),
+            "NBD": (12, 6),
+            "CCD": (12, 2),
+            "PBD": (12, -2),
+            "BeD": (12, -6),
 
-            "D1": (12, 1),
-            "D2": (12, -1)
+            "D1": (16, 2),
+            "D2": (16, -6)
         }
+        plt.figure(figsize=(12, 8))
         edge_labels = nx.get_edge_attributes(graph, 'weight')
         nx.draw(graph, pos, with_labels=True)
-        nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
+        nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, label_pos=0.25)
         plt.show()

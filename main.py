@@ -1,4 +1,6 @@
 import cv2
+
+from models.flow_graph2 import generate_flow_graph
 from models.rulebase import generate_rule_base
 from preprocessing import video_loader
 from preprocessing.granulation import *
@@ -37,6 +39,10 @@ def test_rule_base(video):
 
     rule_base_scaled = (rule_base / 2 * 255).astype(np.uint8)
     cv2.imwrite("../results/spoon/rule_base_3.jpg", rule_base_scaled)
+
+
+    flow_graph = generate_flow_graph(features)
+    Visualization.draw_flow_graph(flow_graph)
 
 
 

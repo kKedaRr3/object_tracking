@@ -30,9 +30,9 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
         # biore srodek granuli ale czy to jest poprawnie to nie wiem a juz tym bardziej czy optymalne
         minY, minX, maxY, maxX  = spatio_color_gib[2][label]
         y, x = int((maxY + minY) / 2), int((maxX + minX) / 2)
-        spatiotemporal_features[label] = calculate_attribute(spatio_color_granule, spatio_temporal_gib[0], y, x)
-        rgb_features[label] = calculate_attribute(spatio_color_granule, rgb_gib[0], y, x)
-        d_features[label] = calculate_attribute(spatio_color_granule, d_gib[0], y, x)
+        spatiotemporal_features[label] = calculate_attribute(spatio_color_granule, spatio_temporal_gib[0], y, x, spatio_color_gib[2][label])
+        rgb_features[label] = calculate_attribute(spatio_color_granule, rgb_gib[0], y, x, spatio_color_gib[2][label])
+        d_features[label] = calculate_attribute(spatio_color_granule, d_gib[0], y, x, spatio_color_gib[2][label])
 
         result_object[label] = np.logical_or.reduce((
             np.logical_and.reduce((spatiotemporal_features[label] == 1, rgb_features[label] == 2, d_features[label] == 2)),
@@ -68,11 +68,31 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
     return rule_base, features
 
 
-def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x):
+def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x, bbox):
     label = granules_to_calculate[y][x]
+
+    minY, minX, maxY, maxX = bbox
+    test = []
+    for y in range(minY, maxY):
+        for x in range(minX, maxX):
+            label_test = granules_to_calculate[y][x]
+            if label_test not in test and label_test is not None:
+                test.append(label_test)
+    if len(test) > 1:
+        print("\n\njest wiecej granul bazowych niz 1 wewnatrz granuli spatio_color")
+        print(test)
+
+    # label = granules_to_calculate[y][x]
     granule = granules_to_calculate == label
     intersection = np.logical_and(spatio_color_granule, granule)
-    return get_attribute(spatio_color_granule, granule, intersection)
+    # TODO tutaj jest cos do przerobienia bo jest wiele granul bazowych w obrebie tego bboxa
+    atr = get_attribute(spatio_color_granule, granule, intersection)
+    if len(test) > 1:
+        if atr == 0: print("NB")
+        if atr == 1: print("PB")
+        if atr == 2: print("Be")
+        if atr == 3: print("CC")
+    return atr
 
 
 @njit()
