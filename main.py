@@ -1,6 +1,6 @@
 import cv2
 
-from models.flow_graph2 import generate_flow_graph
+from models.flow_graph import generate_flow_graph
 from models.rulebase import generate_rule_base
 from preprocessing import video_loader
 from preprocessing.granulation import *

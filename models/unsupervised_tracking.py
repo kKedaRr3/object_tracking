@@ -1,4 +1,6 @@
 import numpy as np
+
+from models.flow_graph import generate_flow_graph, compute_rule_base_coverage
 from preprocessing.granulation import form_spatiotemporal_granules, form_rgb_d_granules, \
     create_granules_color
 from preprocessing.video_preprocessing import compute_3D_difference_matrix, compute_median_matrix
@@ -32,7 +34,7 @@ def object_tracking(frames, threshold=2, p=3):
 
     rule_base, features = generate_rule_base(subsequent_spatio_colour_gib, spatio_temporal_gib, rgb_gib, d_gib)
 
-    flow_graph = generate_flow_graph(features)  # TODO
+    flow_graph = generate_flow_graph(features)
 
     foreground = segment_foreground(rule_base)  # TODO
 
@@ -41,17 +43,13 @@ def object_tracking(frames, threshold=2, p=3):
     for frame_index in range(p + 1, len(frames)):
         current_frame = frames[frame_index]
 
-        current_spatio_colour_granules = create_granules(current_frame, threshold)
+        current_spatio_colour_granules = create_granules_color(current_frame, threshold)
 
         rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
 
         coverage = compute_rule_base_coverage(flow_graph, features) # tutaj trzeba z features policzyc alfa:beta (wyjasnione wyzej) a a:b wyciagnac z flow_graph
-        #TODO
-        # tutaj flow_graph to bedzie ten treningowy a z rule_base i features trzbea
-        # bedzie zrobic testowy czyli ten wynikajacy ze stanu faktycznego
-        # flow_graph jest to jen z wczesniejszej klatki
 
-        if not coverage_variance_is_significant(coverage):
+        if coverage != 0:
             features_to_update = get_features_to_update()  # TODO
             prev_frames = frames[frame_index - p: frame_index]
             if "sp_t" or "rgb" in features_to_update:
@@ -70,7 +68,7 @@ def object_tracking(frames, threshold=2, p=3):
                 d_gib = create_granules_color(depth_median_matrix, threshold)
 
             rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
-            flow_graph = generate_flow_graph(features)  # TODO
+            flow_graph = generate_flow_graph(features)
 
         foreground = segment_foreground(rule_base) # TODO
 

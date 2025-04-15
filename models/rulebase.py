@@ -73,9 +73,10 @@ def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x, bbox)
 
     minY, minX, maxY, maxX = bbox
     test = []
-    for y in range(minY, maxY):
-        for x in range(minX, maxX):
-            label_test = granules_to_calculate[y][x]
+    for y_t in range(minY, maxY):
+        for x_t in range(minX, maxX):
+            label_test = granules_to_calculate[y_t][x_t]
+            if spatio_color_granule[y_t][x_t] == 0: continue
             if label_test not in test and label_test is not None:
                 test.append(label_test)
     if len(test) > 1:
@@ -85,14 +86,7 @@ def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x, bbox)
     # label = granules_to_calculate[y][x]
     granule = granules_to_calculate == label
     intersection = np.logical_and(spatio_color_granule, granule)
-    # TODO tutaj jest cos do przerobienia bo jest wiele granul bazowych w obrebie tego bboxa
-    atr = get_attribute(spatio_color_granule, granule, intersection)
-    if len(test) > 1:
-        if atr == 0: print("NB")
-        if atr == 1: print("PB")
-        if atr == 2: print("Be")
-        if atr == 3: print("CC")
-    return atr
+    return get_attribute(spatio_color_granule, granule, intersection)
 
 
 @njit()
