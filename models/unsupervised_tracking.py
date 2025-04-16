@@ -47,9 +47,10 @@ def object_tracking(frames, threshold=2, p=3):
 
         rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
 
-        coverage = compute_rule_base_coverage(flow_graph, features) # tutaj trzeba z features policzyc alfa:beta (wyjasnione wyzej) a a:b wyciagnac z flow_graph
+        coverage = compute_rule_base_coverage(flow_graph, features)
 
-        if coverage != 0:
+        # chat podpowiada ze jak jest od 0.0 do 0.1 to dwa grafy sa bardzo podobne do siebie wiec dal coverage < 0.1 nie trzeba aktualizowac bazy regul
+        if coverage > 0.1:
             features_to_update = get_features_to_update()  # TODO
             prev_frames = frames[frame_index - p: frame_index]
             if "sp_t" or "rgb" in features_to_update:

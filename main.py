@@ -1,6 +1,6 @@
 import cv2
 
-from models.flow_graph import generate_flow_graph
+from models.flow_graph import generate_flow_graph, compute_rule_base_coverage
 from models.rulebase import generate_rule_base
 from preprocessing import video_loader
 from preprocessing.granulation import *
@@ -12,7 +12,7 @@ video = video_loader.load_frames_from_mp4('../data/spoon.mp4')[10:]
 # Visualization.visualize_spatiotemporal_granules(video[:5], "../results/spoon/spatiotemporal_granules_with_bbox_3.jpg", 3, True)
 # Visualization.visualize_rgb_d_granules(video[:5], "../results/spoon/rgb_d_granules.jpg", 3)
 
-def test_rule_base(video):
+def test_rule_base_and_graphs(video):
     threshold = 67
     p = 3
     frames = video
@@ -40,14 +40,20 @@ def test_rule_base(video):
     rule_base_scaled = (rule_base / 2 * 255).astype(np.uint8)
     cv2.imwrite("../results/spoon/rule_base_3.jpg", rule_base_scaled)
 
-
     flow_graph = generate_flow_graph(features)
-    Visualization.draw_flow_graph(flow_graph)
+
+    current_frame = frames[p+1]
+    current_spatio_colour_granules = create_granules_color(current_frame, threshold)
+    current_rule_base, current_features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
+    coverage = compute_rule_base_coverage(flow_graph, current_features) # jak cos sie wykrzaczy to tutaj
+    print(coverage)
+    # flow_graph = generate_flow_graph(features)
+    # Visualization.draw_flow_graph(flow_graph)
 
 
 
 
 # cos sie liczy i jakis wynik wychodzi ale czy jest dobry to niewiadomo (trzeba sprawdzic jeszcze na poprawnych granulach glebokosciwych)
-test_rule_base(video)
+test_rule_base_and_graphs(video)
 
 

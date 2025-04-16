@@ -71,19 +71,18 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
 def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x, bbox):
     label = granules_to_calculate[y][x]
 
-    minY, minX, maxY, maxX = bbox
-    test = []
-    for y_t in range(minY, maxY):
-        for x_t in range(minX, maxX):
-            label_test = granules_to_calculate[y_t][x_t]
-            if spatio_color_granule[y_t][x_t] == 0: continue
-            if label_test not in test and label_test is not None:
-                test.append(label_test)
-    if len(test) > 1:
-        print("\n\njest wiecej granul bazowych niz 1 wewnatrz granuli spatio_color")
-        print(test)
+    # minY, minX, maxY, maxX = bbox
+    # test = []
+    # for y_t in range(minY, maxY):
+    #     for x_t in range(minX, maxX):
+    #         label_test = granules_to_calculate[y_t][x_t]
+    #         if spatio_color_granule[y_t][x_t] == 0: continue
+    #         if label_test not in test and label_test is not None:
+    #             test.append(label_test)
+    # if len(test) > 1:
+    #     print("\n\njest wiecej granul bazowych niz 1 wewnatrz granuli spatio_color")
+    #     print(test)
 
-    # label = granules_to_calculate[y][x]
     granule = granules_to_calculate == label
     intersection = np.logical_and(spatio_color_granule, granule)
     return get_attribute(spatio_color_granule, granule, intersection)

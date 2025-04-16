@@ -104,7 +104,17 @@ class Visualization:
             "D2": (16, -6)
         }
         plt.figure(figsize=(12, 8))
+
+        node_weights = nx.get_node_attributes(graph, "weight")
+
+        node_labels = {node: f"{node}\n{weight}" for node, weight in node_weights.items()}
+
         edge_labels = nx.get_edge_attributes(graph, 'weight')
-        nx.draw(graph, pos, with_labels=True)
+
+        nx.draw(graph, pos, with_labels=False)
+
         nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, label_pos=0.25)
+
+        nx.draw_networkx_labels(graph, pos, labels=node_labels)
+
         plt.show()

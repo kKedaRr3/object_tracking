@@ -5,8 +5,8 @@ from utils.visualization import Visualization
 
 #TODO
 # Do przeanalizowania/zrobienia:
-# 1) W rule base jest duzo niezakwalifikowanych granul ktore nie sa ani obiektem ani tlem przez co wydaje mi sie ze sa takie dziwne przeplywy
-# 2) Zrobic porownanie dwoch grafow
+# 1) W rule base jest duzo niezakwalifikowanych granul ktore nie sa ani obiektem ani tlem
+# 2) Zrobic graf oczekiwany
 
 # a:b to jest rozklad klas wejsciowych to znaczy jaka jest proporcja miedzy granulami obiekow a granulami tla
 # alfa:beta to proporcja miedzy klasami w nowym rule_base
@@ -19,23 +19,30 @@ def generate_flow_graph(features):
 def compute_rule_base_coverage(g1, features):
 
     nfg1 = compute_normalized_graph(g1)
-    nfg1 = compute_expected_graph(nfg1)
 
     g2 = generate_flow_graph(features)
     nfg2 = compute_normalized_graph(g2)
 
+    nfg1 = compute_expected_graph(nfg1, nfg2)
+
     return compute_mutual_dependency(nfg1, nfg2)
 
 def compute_normalized_graph(fg2):
-    all_granules_count = fg2["O"] + fg2["B"]
+    all_granules_count = fg2.nodes["O"]["weight"] + fg2.nodes["B"]["weight"]
     for _, _, data in fg2.edges(data=True):
         data["weight"] = data["weight"] / all_granules_count
     for _, data in fg2.nodes(data=True):
         data["weight"] = data["weight"] / all_granules_count
     return fg2
 
-def compute_expected_graph(nfg):
-    pass
+def compute_expected_graph(nfg1, nfg2):
+    for u, v, data in nfg1.edges(data=True):
+        if nfg1.nodes[u]["weight"] == 0: continue
+        alfa = nfg2.nodes[u]["weight"]
+        data["weight"] = alfa * data["weight"] / nfg1.nodes[u]["weight"]
+    for node in nfg1.nodes():
+        nfg1.nodes[node]["weight"] = nfg2.nodes[node]["weight"]
+    return nfg1
 
 def compute_mutual_dependency(fg1, fg2):
     sum_top, sum_bottom = 0, 0
@@ -47,11 +54,11 @@ def compute_mutual_dependency(fg1, fg2):
 def generate_empty_graph():
     graph = nx.DiGraph()
 
-    graph.add_nodes_from(["O", "B"])
-    graph.add_nodes_from(["NBT", "CCT", "PBT", "BeT"])
-    graph.add_nodes_from(["NBR", "PBR", "BeR"])
-    graph.add_nodes_from(["NBD", "CCD", "PBD", "BeD"])
-    graph.add_nodes_from(["D1", "D2"])
+    graph.add_nodes_from(["O", "B"], weight=0)
+    graph.add_nodes_from(["NBT", "CCT", "PBT", "BeT"], weight=0)
+    graph.add_nodes_from(["NBR", "PBR", "BeR"], weight=0)
+    graph.add_nodes_from(["NBD", "CCD", "PBD", "BeD"], weight=0)
+    graph.add_nodes_from(["D1", "D2"], weight=0)
 
     graph.add_edges_from([("O", "NBT"), ("O", "CCT"), ("O", "PBT"), ("O", "BeT")], weight=0)
     graph.add_edges_from([("B", "NBT"), ("B", "PBT"), ("B", "BeT")], weight=0)
@@ -78,6 +85,41 @@ def add_weights_to_flow_graph(graph, features):
     for granule_index in object_granules.keys():
 
         if object_granules[granule_index] == 0 and background_granules[granule_index] == 0: continue
+
+        if object_granules[granule_index] == 1:
+            graph.nodes["O"]["weight"] += 1
+        if background_granules[granule_index] == 1:
+            graph.nodes["B"]["weight"] += 1
+        if sp_t_features[granule_index] == 0:
+            graph.nodes["NBT"]["weight"] += 1
+        if sp_t_features[granule_index] == 1:
+            graph.nodes["PBT"]["weight"] += 1
+        if sp_t_features[granule_index] == 2:
+            graph.nodes["BeT"]["weight"] += 1
+        if sp_t_features[granule_index] == 3:
+            graph.nodes["CCT"]["weight"] += 1
+        if rgb_features[granule_index] == 0:
+            graph.nodes["NBR"]["weight"] += 1
+        if rgb_features[granule_index] == 1:
+            graph.nodes["PBR"]["weight"] += 1
+        if rgb_features[granule_index] == 2:
+            graph.nodes["BeR"]["weight"] += 1
+        if d_features[granule_index] == 0:
+            graph.nodes["NBD"]["weight"] += 1
+        if d_features[granule_index] == 1:
+            graph.nodes["PBD"]["weight"] += 1
+        if d_features[granule_index] == 2:
+            graph.nodes["BeD"]["weight"] += 1
+        if d_features[granule_index] == 3:
+            graph.nodes["CCD"]["weight"] += 1
+
+        # - detection
+        if background_granules[granule_index] == 1 and d_features[granule_index] == 0 and rgb_features[granule_index] == 0 and sp_t_features[granule_index] == 2:
+            graph.nodes["D2"]["weight"] += 1
+        # + detection
+        else:
+            graph.nodes["D1"]["weight"] += 1
+
 
         if object_granules[granule_index] == 1 and sp_t_features[granule_index] == 0:
             graph["O"]["NBT"]["weight"] += 1
@@ -130,14 +172,34 @@ def add_weights_to_flow_graph(graph, features):
         if rgb_features[granule_index] == 2 and d_features[granule_index] == 2:
             graph["BeR"]["BeD"]["weight"] += 1
 
-        if d_features[granule_index] == 0 and background_granules[granule_index] == 1:
-            graph["NBD"]["D2"]["weight"] += 1
-        if d_features[granule_index] == 0 and object_granules[granule_index] == 1:
+        if background_granules[granule_index] == 1 and sp_t_features[granule_index] == 0 and rgb_features[granule_index] == 0 and d_features[granule_index] == 0:
             graph["NBD"]["D1"]["weight"] += 1
-        if d_features[granule_index] == 3 and object_granules[granule_index] == 1:
-            graph["CCD"]["D1"]["weight"] += 1
-        if d_features[granule_index] == 1 and object_granules[granule_index] == 1:
-            graph["PBD"]["D1"]["weight"] += 1
-        if d_features[granule_index] == 2 and object_granules[granule_index] == 1:
+        if background_granules[granule_index] == 1 and sp_t_features[granule_index] == 0 and rgb_features[granule_index] == 2 and d_features[granule_index] == 2:
             graph["BeD"]["D1"]["weight"] += 1
-
+        if object_granules[granule_index] == 1 and sp_t_features[granule_index] == 1 and rgb_features[
+            granule_index] == 2 and d_features[granule_index] == 2:
+            graph["BeD"]["D1"]["weight"] += 1
+        if background_granules[granule_index] == 1 and sp_t_features[granule_index] == 1 and rgb_features[
+            granule_index] == 2 and d_features[granule_index] == 1:
+            graph["PBD"]["D1"]["weight"] += 1
+        if object_granules[granule_index] == 1 and sp_t_features[granule_index] == 2 and rgb_features[
+            granule_index] == 2 and d_features[granule_index] == 1:
+            graph["PBD"]["D1"]["weight"] += 1
+        if object_granules[granule_index] == 1 and sp_t_features[granule_index] == 3 and rgb_features[
+            granule_index] == 2 and d_features[granule_index] == 2:
+            graph["BeD"]["D1"]["weight"] += 1
+        if background_granules[granule_index] == 1 and sp_t_features[granule_index] == 0 and rgb_features[
+            granule_index] == 0 and d_features[granule_index] == 2:
+            graph["BeD"]["D1"]["weight"] += 1
+        if background_granules[granule_index] == 1 and d_features[granule_index] == 0 and rgb_features[
+            granule_index] == 0 and sp_t_features[granule_index] == 2:
+            graph["NBD"]["D2"]["weight"] += 1
+        if object_granules[granule_index] == 1 and d_features[granule_index] == 0 and rgb_features[
+            granule_index] == 0 and sp_t_features[granule_index] == 2:
+            graph["NBD"]["D1"]["weight"] += 1
+        if object_granules[granule_index] == 1 and sp_t_features[granule_index] == 1 and rgb_features[
+            granule_index] == 1 and d_features[granule_index] == 3:
+            graph["CCD"]["D1"]["weight"] += 1
+        if object_granules[granule_index] == 1 and sp_t_features[granule_index] == 2 and rgb_features[
+            granule_index] == 2 and d_features[granule_index] == 2:
+            graph["BeD"]["D1"]["weight"] += 1
