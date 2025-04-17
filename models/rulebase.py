@@ -25,7 +25,7 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
 
     max_index = find_max_granule_index(spatio_color_gib[0])
     for label in range(max_index + 1):
-        if label % 50 == 0: print(f"Processing granule {label}/{max_index}")
+        if label % 200 == 0 or label == max_index - 1: print(f"Processing granule {label}/{max_index}")
         spatio_color_granule = spatio_color_gib[0] == label
         # biore srodek granuli ale czy to jest poprawnie to nie wiem a juz tym bardziej czy optymalne
         minY, minX, maxY, maxX  = spatio_color_gib[2][label]
@@ -90,12 +90,12 @@ def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x, bbox)
 
 @njit()
 def get_attribute(spatio_color_granule, granule, intersection):
-    '''
+    """
     :param spatio_color_granule:
     :param granule:
     :param intersection:
     :return: 0 to NB,   1 to PB,    2 to Be,    3, to CC
-    '''
+    """
 
     sum_intersection = np.sum(intersection)
     sum_spatio_color_granule = np.sum(spatio_color_granule)
@@ -110,8 +110,4 @@ def get_attribute(spatio_color_granule, granule, intersection):
     elif sum_intersection < sum_spatio_color_granule:
         return 1
     else:
-        print(sum_intersection, sum_spatio_color_granule, sum_granule)
-        print(intersection.dtype)
-        print(spatio_color_granule.dtype)
-        print(granule.dtype)
         raise ValueError("Somehow, the intersection doesn't match the intersection of the two granule types.")

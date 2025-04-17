@@ -1,6 +1,7 @@
 import numpy as np
 from preprocessing.video_preprocessing import compute_3D_difference_matrix, compute_median_matrix
 
+
 def colour_nearness_rgb(color1, color2, threshold):
     '''Funkcja do sprawdzania podobiensta kolorow'''
     return np.linalg.norm(np.array(color1) - np.array(color2)) < threshold
@@ -16,7 +17,7 @@ def create_granules_color(image, threshold: int):
     granule_index = 0
 
     for y in range(height):
-        if y % 10 == 0: print(f"Processed row {y}")
+        if y % 100 == 0 or y == height - 1: print(f"Processed row: {y}/{height}")
         for x in range(width):
             if np.all(image[y][x]) == 0 or granules[y][x] is not None:
                 continue
@@ -33,7 +34,7 @@ def create_granules_color(image, threshold: int):
                     if 0 <= neighbor_y < height and 0 <= neighbor_x < width and np.all(
                             image[neighbor_y][neighbor_x]) != 0:
                         if colour_nearness_rgb(image[current_y][current_x], image[neighbor_y][neighbor_x],
-                                           threshold) and granules[neighbor_y][neighbor_x] is None:
+                                               threshold) and granules[neighbor_y][neighbor_x] is None:
                             neighbor_found = True
 
                             initial_colors[granule_index] = image[y][x]
@@ -48,11 +49,10 @@ def create_granules_color(image, threshold: int):
 
             if neighbor_found:
                 granule_index += 1
-    print("Frame Processed")
     return (granules, initial_colors, bounding_boxes)
 
-def form_spatiotemporal_granules(frames, threshold):
 
+def form_spatiotemporal_granules(frames, threshold):
     prev_taus = []
     granules_last, initial_colors_last, bounding_boxes_last = create_granules_color(frames[-1], threshold)
 
@@ -61,12 +61,14 @@ def form_spatiotemporal_granules(frames, threshold):
         prev_taus.append((granules, initial_colors, bounding_boxes))
 
     max_last = find_max_granule_index(granules_last)
-    for granule_index in range(max_last):
-        if granule_index % 10 == 0: print(f"Przetwarzanie granuli {granule_index}/{max_last}")
+    for granule_index in range(max_last + 1):
+        if granule_index % 200 == 0 or granule_index == max_last - 1:
+            print(f"Processing granule: {granule_index}/{max_last}")
         recurrent_function(granule_index, granules_last, initial_colors_last[granule_index],
                            bounding_boxes_last[granule_index], prev_taus, threshold)
 
     return prev_taus[0][0], prev_taus[0][1], prev_taus[0][2]
+
 
 def recurrent_function(granule_index, current_tau_granules, current_granule_colour, current_granule_bbox, prev_taus,
                        threshold):
@@ -77,7 +79,7 @@ def recurrent_function(granule_index, current_tau_granules, current_granule_colo
     if granule_index >= max_prev:
         return
 
-    for prev_granule_index in range(max_prev):
+    for prev_granule_index in range(max_prev + 1):
         is_overlap = is_overlapping(current_granule_bbox, prev_tau[2][prev_granule_index])
         if colour_nearness_rgb(current_granule_colour, prev_tau[1][prev_granule_index], threshold) and is_overlap:
             prev_tau[1][prev_granule_index] = current_granule_colour
@@ -102,6 +104,7 @@ def merge_granules(granule_index, prev_granule_index, granules, bounding_box):
             if prev_granule_index == granules[y][x]:
                 granules[y][x] = granule_index
 
+
 def find_max_granule_index(granules):
     max = 0
     for y in range(len(granules)):
@@ -110,6 +113,7 @@ def find_max_granule_index(granules):
             if granules[y][x] > max:
                 max = granules[y][x]
     return max
+
 
 def form_rgb_d_granules(sp_t_granules, sp_t_initial_colors, sp_t_bounding_boxes, threshold):
     sp_t_image = np.zeros_like(sp_t_granules)

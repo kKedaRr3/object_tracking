@@ -18,14 +18,15 @@ class Visualization:
         diff_frames = compute_3D_difference_matrix(frames[:p], frames[p])
         median_frame = compute_median_matrix(diff_frames)
         threshold = 0.3 * np.max(median_frame)
+        threshold = 250
 
         granules, initial_colors, bounding_boxes = granulation.form_spatiotemporal_granules(diff_frames, threshold)
 
         if bbox:
             for granule_index, bbox in bounding_boxes.items():
                 minY, minX, maxY, maxX = bbox
-                cv2.rectangle(frames[np.floor(p / 2)], (minX, minY), (maxX, maxY), bbox_color, 1)
-            cv2.imwrite(output_path, frames[-1])
+                cv2.rectangle(median_frame, (minX, minY), (maxX, maxY), bbox_color, 1)
+            cv2.imwrite(output_path, median_frame)
         else:
             result = np.zeros_like(frames[0])
             for y in range(frames[0].shape[0]):
