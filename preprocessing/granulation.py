@@ -115,8 +115,6 @@ def find_max_granule_index(granules):
 
 
 def form_rgb_d_granules(sp_t_granules, sp_t_initial_colors, sp_t_bounding_boxes, threshold):
-    # sp_t_image = np.zeros_like(sp_t_granules)
-
     height, width = sp_t_granules.shape
     sp_t_image = np.zeros((height, width, 3), dtype=np.uint8)
 

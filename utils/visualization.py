@@ -1,24 +1,22 @@
 import networkx as nx
-import numpy as np
 from matplotlib import pyplot as plt
 
-from preprocessing import granulation
 import cv2
-from preprocessing.granulation import find_max_granule_index, form_rgb_d_granules
+from preprocessing.granulation import *
 from preprocessing.video_preprocessing import compute_3D_difference_matrix, compute_median_matrix
 
 
 class Visualization:
 
     @staticmethod
-    def visualize_spatiotemporal_granules(frames, output_path, p, bbox=True, bbox_color=(255, 0, 0)):
+    def visualize_spatiotemporal_granules(frames, output_path, bbox=True, bbox_color=(255, 0, 0)):
         if len(frames) <= 3:
             raise Exception('Not enough frames to visualize')
-        diff_frames = compute_3D_difference_matrix(frames[:p], frames[p])
+        diff_frames = compute_3D_difference_matrix(frames[:-1], frames[-1])
         median_frame = compute_median_matrix(diff_frames)
         threshold = 0.3 * np.max(median_frame)
 
-        granules, initial_colors, bounding_boxes = granulation.form_spatiotemporal_granules(diff_frames, threshold)
+        granules, initial_colors, bounding_boxes = form_spatiotemporal_granules(diff_frames, threshold)
 
         if bbox:
             for granule_index, bbox in bounding_boxes.items():
@@ -38,7 +36,7 @@ class Visualization:
         if type(image).__name__ == 'str':
             image = cv2.imread(image)
 
-        granules, initial_colors, bounding_boxes = granulation.create_granules_color(image, threshold)
+        granules, initial_colors, bounding_boxes = create_granules_color(image, threshold)
 
         if bbox:
             for granule_index, bbox in bounding_boxes.items():
@@ -55,14 +53,14 @@ class Visualization:
             cv2.imwrite(output_path, result)
 
     @staticmethod
-    def visualize_rgb_d_granules(frames, output_path, p, bbox=True, bbox_color=(255, 0, 0)):
+    def visualize_rgb_granules(frames, output_path, bbox=True, bbox_color=(255, 0, 0)):
         if len(frames) <= 3:
             raise Exception('Not enough frames to visualize')
-        diff_frames = compute_3D_difference_matrix(frames[:p], frames[p])
+        diff_frames = compute_3D_difference_matrix(frames[:-1], frames[-1])
         median_frame = compute_median_matrix(diff_frames)
         threshold = 0.3 * np.max(median_frame)
 
-        granules, initial_colors, bounding_boxes = granulation.form_spatiotemporal_granules(diff_frames, threshold)
+        granules, initial_colors, bounding_boxes = form_spatiotemporal_granules(diff_frames, threshold)
         rgb_granules, rgb_initial_colors, rgb_bounding_boxes = form_rgb_d_granules(granules, initial_colors,
                                                                                    bounding_boxes, threshold)
 
@@ -75,9 +73,35 @@ class Visualization:
             result = np.zeros_like(frames[0])
             for y in range(frames[0].shape[0]):
                 for x in range(frames[0].shape[1]):
-                    if granules[y, x] is not None:
+                    if granules[y, x] != -1:
                         result[y, x] = rgb_initial_colors[rgb_granules[y, x]]
             cv2.imwrite(output_path, result)
+
+    @staticmethod
+    def visualize_d_granules(frames, output_path, bbox=True, bbox_color=(255, 0, 0)):
+        if len(frames) <= 3:
+            raise Exception('Not enough frames to visualize')
+
+        depth_diff_3D_matrix = compute_3D_difference_matrix(frames[:-1], frames[-1])
+        depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
+        cv2.imwrite("../results/man/diff_median.jpg", depth_median_matrix)
+        threshold = 0.3 * np.max(depth_median_matrix)
+        sp_t_gib = form_spatiotemporal_granules(depth_diff_3D_matrix, threshold)
+        d_gib = form_rgb_d_granules(sp_t_gib[0], sp_t_gib[1], sp_t_gib[2], 15)
+
+        if bbox:
+            for granule_index, bbox in d_gib[2].items():
+                minY, minX, maxY, maxX = bbox
+                cv2.rectangle(frames[0], (minX, minY), (maxX, maxY), bbox_color, 1)
+            cv2.imwrite(output_path, frames[0])
+        else:
+            result = np.zeros_like(frames[0])
+            for y in range(frames[0].shape[0]):
+                for x in range(frames[0].shape[1]):
+                    if d_gib[0][y, x] != -1:
+                        result[y, x] = d_gib[1][d_gib[0][y, x]]
+            cv2.imwrite(output_path, result)
+
 
     @staticmethod
     def draw_flow_graph(graph):

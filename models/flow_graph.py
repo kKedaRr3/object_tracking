@@ -2,11 +2,6 @@ import networkx as nx
 import numpy as np
 
 
-# TODO
-# Do przeanalizowania/zrobienia:
-# 1) W rule base jest duzo niezakwalifikowanych granul ktore nie sa ani obiektem ani tlem aczkolwiek wydaje sie ze powinny byc tlem
-
-
 def generate_flow_graph(features):
     flow_graph = generate_empty_graph()
     add_weights_to_flow_graph(flow_graph, features)

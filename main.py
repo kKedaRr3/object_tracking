@@ -1,18 +1,21 @@
 import time
 
-import cv2
-
 from models.unsupervised_tracking import object_tracking
 from preprocessing import video_loader
 from utils.visualization import Visualization
 
-video = video_loader.load_frames_from_mp4('../data/spoon.mp4')[1:]
+video_rgb = video_loader.load_frames_from_mp4('../data/man_rgb.mp4')[:20]
+video_depth  = video_loader.load_frames_from_mp4('../data/man_depth.mp4')[:20]
 
-object_tracking(video, "../results/spoon/tracked_spoon.mp4", 50, 3)
+
 
 start_time = time.time()
-# Visualization.visualize_spatiotemporal_granules(video[18:22], "../results/spoon/test/sp_t_frame_22_e2.jpg", 3, True)
-# Visualization.visualize_spatio_color_granules(video[5], "../results/spoon/test/color_1.jpg", 50, False)
+# Visualization.visualize_spatiotemporal_granules(video_rgb[18:22], "../results/man/sp_t_1.jpg", True)
+# Visualization.visualize_rgb_granules(video_rgb[18:22], "../results/man/rgb_1.jpg", True)
+# Visualization.visualize_spatio_color_granules(video_rgb[30], "../results/man/color_1.jpg", 30, True)
+# Visualization.visualize_d_granules(video_depth[18:22], "../results/man/depth_1.jpg", True)
+
+object_tracking(video_rgb, video_depth,"../results/man/tracked_spoon.mp4", 50, 3)
 
 end_time = time.time()
 
