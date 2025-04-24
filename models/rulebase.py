@@ -55,7 +55,7 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
     for y in range(height):
         for x in range(width):
             label = spatio_color_gib[0][y][x]
-            if label is None: continue
+            if label == -1: continue
             if result_object[label] == 1:
                 rule_base[y][x] = 2
             elif result_background[label] == 1:
@@ -88,7 +88,7 @@ def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x, bbox)
     return get_attribute(spatio_color_granule, granule, intersection)
 
 
-@njit()
+@njit
 def get_attribute(spatio_color_granule, granule, intersection):
     """
     :param spatio_color_granule:

@@ -53,10 +53,10 @@ def object_tracking(frames: np.array, output_path: str, threshold: int = 2, p: i
 
         rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
 
-        # '''for tests'''
-        # rule_base_scaled = (rule_base / 2 * 255).astype(np.uint8)
-        # cv2.imwrite(f"../results/spoon/test/frame_{frame_index}.jpg", rule_base_scaled)
-        # '''for tests'''
+        '''for tests'''
+        rule_base_scaled = (rule_base / 2 * 255).astype(np.uint8)
+        cv2.imwrite(f"../results/spoon/rule_base/frame_{frame_index}.jpg", rule_base_scaled)
+        '''for tests'''
 
         coverage, test_flow_graph = compute_rule_base_coverage(flow_graph, features)
         print("coverage: ", coverage)

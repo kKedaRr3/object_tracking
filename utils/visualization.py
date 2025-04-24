@@ -30,12 +30,12 @@ class Visualization:
             result = np.zeros_like(frames[0])
             for y in range(frames[0].shape[0]):
                 for x in range(frames[0].shape[1]):
-                    if granules[y, x] is not None:
+                    if granules[y, x] != -1:
                         result[y, x] = initial_colors[granules[y, x]]
             cv2.imwrite(output_path, result)
 
     @staticmethod
-    def visualize_spatio_color_granules(image, output_path, threshold=2, rgb=True, bbox=True, bbox_color=(0, 0, 0)):
+    def visualize_spatio_color_granules(image, output_path, threshold=2, bbox=True, bbox_color=(0, 0, 0)):
         if type(image).__name__ == 'str':
             image = cv2.imread(image)
 
@@ -51,7 +51,7 @@ class Visualization:
             result = np.zeros_like(image)
             for y in range(image.shape[0]):
                 for x in range(image.shape[1]):
-                    if granules[y, x] is not None:
+                    if granules[y, x] != -1:
                         result[y, x] = initial_colors[granules[y, x]]
             cv2.imwrite(output_path, result)
 
