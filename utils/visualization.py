@@ -17,7 +17,6 @@ class Visualization:
         diff_frames = compute_3D_difference_matrix(frames[:p], frames[p])
         median_frame = compute_median_matrix(diff_frames)
         threshold = 0.3 * np.max(median_frame)
-        threshold = 250
 
         granules, initial_colors, bounding_boxes = granulation.form_spatiotemporal_granules(diff_frames, threshold)
 
