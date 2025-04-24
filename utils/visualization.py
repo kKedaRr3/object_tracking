@@ -2,7 +2,6 @@ import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
 
-from preprocessing import video_loader
 from preprocessing import granulation
 import cv2
 from preprocessing.granulation import find_max_granule_index, form_rgb_d_granules

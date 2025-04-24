@@ -25,7 +25,7 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
 
     max_index = find_max_granule_index(spatio_color_gib[0])
     for label in range(max_index + 1):
-        if label % 200 == 0 or label == max_index - 1: print(f"Processing granule {label}/{max_index}")
+        if label % 200 == 0 or label == max_index - 1: print(f"Processing granule: {label}/{max_index}")
         spatio_color_granule = spatio_color_gib[0] == label
         # biore srodek granuli ale czy to jest poprawnie to nie wiem a juz tym bardziej czy optymalne
         minY, minX, maxY, maxX  = spatio_color_gib[2][label]
@@ -111,3 +111,7 @@ def get_attribute(spatio_color_granule, granule, intersection):
         return 1
     else:
         raise ValueError("Somehow, the intersection doesn't match the intersection of the two granule types.")
+
+
+def segment_foreground(rule_base):
+    return np.where(rule_base == 2, 1, 0).astype(np.uint8)

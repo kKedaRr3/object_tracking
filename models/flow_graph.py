@@ -61,7 +61,6 @@ def get_features_to_update(g1, g2, thr):
         else:
             dependency = np.abs(data["weight"] / g2[u][v]["weight"] - 1)
         if dependency > thr:
-            print(f"edge {u}, {v}, dependency: {dependency}")
             if v.endswith("T"):
                 features_to_update.append("sp_t")
             if v.endswith("R"):

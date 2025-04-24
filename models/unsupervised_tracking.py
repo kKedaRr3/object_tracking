@@ -2,19 +2,20 @@ import cv2
 import numpy as np
 
 from models.flow_graph import generate_flow_graph, compute_rule_base_coverage, get_features_to_update
-from preprocessing.granulation import form_spatiotemporal_granules, form_rgb_d_granules, \
-    create_granules_color
+from postprocessing.frame_postprocessor import draw_tracked_object_bbox, create_video_from_frames
+from preprocessing.granulation import form_spatiotemporal_granules, form_rgb_d_granules, create_granules_color
 from preprocessing.video_preprocessing import compute_3D_difference_matrix, compute_median_matrix
-from models.rulebase import generate_rule_base
+from models.rulebase import generate_rule_base, segment_foreground
 
 
-def object_tracking(frames, threshold=2, p=3):
+def object_tracking(frames: np.array, output_path: str, threshold: int = 2, p: int = 3):
     """
     Główny algorytm śledzenia obiektów w klatkach wideo.
     """
 
     initial_frames = frames[:p]
     subsequent_frame = frames[p]
+    processed_frames = []
 
     diff_3D_matrix = compute_3D_difference_matrix(initial_frames, subsequent_frame)
     median_matrix = compute_median_matrix(diff_3D_matrix)
@@ -38,9 +39,11 @@ def object_tracking(frames, threshold=2, p=3):
 
     flow_graph = generate_flow_graph(features)
 
-    # foreground = segment_foreground(rule_base)  # TODO
+    foreground = segment_foreground(rule_base)
 
-    # track_object(foreground)  # TODO
+    object_bbox = track_object(foreground)
+
+    processed_frames.append(draw_tracked_object_bbox(object_bbox, subsequent_frame))
 
     for frame_index in range(p + 1, len(frames)):
         print(f"\nframe {frame_index}/{len(frames)}")
@@ -50,15 +53,14 @@ def object_tracking(frames, threshold=2, p=3):
 
         rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
 
-        '''for tests'''
-        rule_base_scaled = (rule_base / 2 * 255).astype(np.uint8)
-        cv2.imwrite(f"../results/spoon/test/frame_{frame_index}.jpg", rule_base_scaled)
-        '''for tests'''
+        # '''for tests'''
+        # rule_base_scaled = (rule_base / 2 * 255).astype(np.uint8)
+        # cv2.imwrite(f"../results/spoon/test/frame_{frame_index}.jpg", rule_base_scaled)
+        # '''for tests'''
 
         coverage, test_flow_graph = compute_rule_base_coverage(flow_graph, features)
         print("coverage: ", coverage)
 
-        # corerage trzeba bedzie testowac
         if coverage > 0.02:
             features_to_update = get_features_to_update(flow_graph, test_flow_graph, 0.5)
             print("\n\nupdate required")
@@ -81,9 +83,39 @@ def object_tracking(frames, threshold=2, p=3):
                 median_matrix_d = compute_median_matrix(diff_3D_matrix_d)
                 d_gib = create_granules_color(median_matrix_d, threshold)
 
-            rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
+            rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib,
+                                                     d_gib)
             flow_graph = generate_flow_graph(features)
 
-        # foreground = segment_foreground(rule_base) # TODO
-        #
-        # track_object(foreground) # TODO
+        foreground = segment_foreground(rule_base)
+
+        object_bbox = track_object(foreground)
+
+        print("\n\n", object_bbox, "\n\n")
+
+        processed_frames.append(draw_tracked_object_bbox(object_bbox, current_frame))
+
+    create_video_from_frames(processed_frames, output_path)
+
+
+def track_object(foreground):
+    contours, _ = cv2.findContours(foreground, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if not contours:
+        return None
+
+    largest_contour = max(contours, key=cv2.contourArea)
+
+    minX = minY = float('inf')
+    maxX = maxY = -float('inf')
+
+    for point in largest_contour:
+        x, y = point[0]
+
+        minX = min(minX, x)
+        minY = min(minY, y)
+        maxX = max(maxX, x)
+        maxY = max(maxY, y)
+
+    return minY, minX, maxY, maxX
+

@@ -1,6 +1,4 @@
 import numpy as np
-from preprocessing.video_preprocessing import compute_3D_difference_matrix, compute_median_matrix
-
 
 def colour_nearness_rgb(color1, color2, threshold):
     '''Funkcja do sprawdzania podobiensta kolorow'''
@@ -17,7 +15,7 @@ def create_granules_color(image, threshold: int):
     granule_index = 0
 
     for y in range(height):
-        if y % 100 == 0 or y == height - 1: print(f"Processed row: {y}/{height}")
+        if y % 100 == 0 or y == height - 1: print(f"Processing row: {y}/{height}")
         for x in range(width):
             if np.all(image[y][x]) == 0 or granules[y][x] is not None:
                 continue
