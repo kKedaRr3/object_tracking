@@ -9,7 +9,7 @@ def compute_3D_difference_matrix(frames, current_frame):
         diff_image = np.clip(diff_image, 0, 255).astype(np.uint8)
         difference.append(diff_image)
 
-    return difference
+    return erode_diff_frames(difference)
 
 def compute_median_matrix(difference_3D_matrix):
     height, width, _ = difference_3D_matrix[0].shape
@@ -27,3 +27,14 @@ def compute_median_matrix(difference_3D_matrix):
             median_matrix[y, x, 2] = np.median(pixel_values_b)  # Blue channel
 
     return median_matrix
+
+def median_filtration(diff_frames):
+    for index, frame in enumerate(diff_frames):
+        diff_frames[index] = cv2.medianBlur(frame, 11)
+    return diff_frames
+
+def erode_diff_frames(diff_frames):
+    kernel = np.ones((5, 5), np.uint8)
+    for index, frame in enumerate(diff_frames):
+        diff_frames[index] = cv2.erode(frame, kernel)
+    return diff_frames

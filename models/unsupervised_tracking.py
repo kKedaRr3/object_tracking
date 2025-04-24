@@ -6,6 +6,7 @@ from postprocessing.frame_postprocessor import draw_tracked_object_bbox, create_
 from preprocessing.granulation import form_spatiotemporal_granules, form_rgb_d_granules, create_granules_color
 from preprocessing.video_preprocessing import compute_3D_difference_matrix, compute_median_matrix
 from models.rulebase import generate_rule_base, segment_foreground
+from utils.visualization import Visualization
 
 
 def object_tracking(frames: np.array, output_path: str, threshold: int = 2, p: int = 3):
@@ -61,7 +62,7 @@ def object_tracking(frames: np.array, output_path: str, threshold: int = 2, p: i
         coverage, test_flow_graph = compute_rule_base_coverage(flow_graph, features)
         print("coverage: ", coverage)
 
-        if coverage > 0.02:
+        if coverage > 0.01:
             features_to_update = get_features_to_update(flow_graph, test_flow_graph, 0.5)
             print("\n\nupdate required")
             print(features_to_update)
@@ -86,6 +87,8 @@ def object_tracking(frames: np.array, output_path: str, threshold: int = 2, p: i
             rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib,
                                                      d_gib)
             flow_graph = generate_flow_graph(features)
+
+        Visualization.draw_flow_graph(flow_graph)
 
         foreground = segment_foreground(rule_base)
 

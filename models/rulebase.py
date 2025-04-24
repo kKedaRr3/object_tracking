@@ -2,8 +2,8 @@ from preprocessing.granulation import find_max_granule_index
 import numpy as np
 from numba import njit
 
-def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
 
+def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
     '''
     Trzeba porownac spatio_color granules(otrzymane z create_granules) z spatio-temporal granules(otrzymane z form_spatiotemporal_granules) rgb_granules(otrzymane z form_rgb_d_granules) i d_granules
 
@@ -28,29 +28,40 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
         if label % 200 == 0 or label == max_index - 1: print(f"Processing granule: {label}/{max_index}")
         spatio_color_granule = spatio_color_gib[0] == label
         # biore srodek granuli ale czy to jest poprawnie to nie wiem a juz tym bardziej czy optymalne
-        minY, minX, maxY, maxX  = spatio_color_gib[2][label]
+        minY, minX, maxY, maxX = spatio_color_gib[2][label]
         y, x = int((maxY + minY) / 2), int((maxX + minX) / 2)
-        spatiotemporal_features[label] = calculate_attribute(spatio_color_granule, spatio_temporal_gib[0], y, x, spatio_color_gib[2][label])
+        spatiotemporal_features[label] = calculate_attribute(spatio_color_granule, spatio_temporal_gib[0], y, x,
+                                                             spatio_color_gib[2][label])
         rgb_features[label] = calculate_attribute(spatio_color_granule, rgb_gib[0], y, x, spatio_color_gib[2][label])
         d_features[label] = calculate_attribute(spatio_color_granule, d_gib[0], y, x, spatio_color_gib[2][label])
 
         result_object[label] = np.logical_or.reduce((
-            np.logical_and.reduce((spatiotemporal_features[label] == 1, rgb_features[label] == 2, d_features[label] == 2)),
-            np.logical_and.reduce((spatiotemporal_features[label] == 2, rgb_features[label] == 2, d_features[label] == 1)),
-            np.logical_and.reduce((spatiotemporal_features[label] == 3, rgb_features[label] == 2, d_features[label] == 2)),
-            np.logical_and.reduce((spatiotemporal_features[label] == 2, rgb_features[label] == 0, d_features[label] == 0)),
-            np.logical_and.reduce((spatiotemporal_features[label] == 1, rgb_features[label] == 1, d_features[label] == 3)),
-            np.logical_and.reduce((spatiotemporal_features[label] == 2, rgb_features[label] == 2, d_features[label] == 2)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 1, rgb_features[label] == 2, d_features[label] == 2)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 2, rgb_features[label] == 2, d_features[label] == 1)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 3, rgb_features[label] == 2, d_features[label] == 2)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 2, rgb_features[label] == 0, d_features[label] == 0)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 1, rgb_features[label] == 1, d_features[label] == 3)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 2, rgb_features[label] == 2, d_features[label] == 2)),
         ))
 
         result_background[label] = np.logical_or.reduce((
-            np.logical_and.reduce((spatiotemporal_features[label] == 0, rgb_features[label] == 0, d_features[label] == 0)),
-            np.logical_and.reduce((spatiotemporal_features[label] == 0, rgb_features[label] == 2, d_features[label] == 2)),
-            np.logical_and.reduce((spatiotemporal_features[label] == 1, rgb_features[label] == 2, d_features[label] == 1)),
-            np.logical_and.reduce((spatiotemporal_features[label] == 0, rgb_features[label] == 0, d_features[label] == 2)),
-            np.logical_and.reduce((spatiotemporal_features[label] == 2, rgb_features[label] == 0, d_features[label] == 0)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 0, rgb_features[label] == 0, d_features[label] == 0)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 0, rgb_features[label] == 2, d_features[label] == 2)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 1, rgb_features[label] == 2, d_features[label] == 1)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 0, rgb_features[label] == 0, d_features[label] == 2)),
+            np.logical_and.reduce(
+                (spatiotemporal_features[label] == 2, rgb_features[label] == 0, d_features[label] == 0)),
         ))
-
 
     for y in range(height):
         for x in range(width):
@@ -70,7 +81,8 @@ def generate_rule_base(spatio_color_gib, spatio_temporal_gib, rgb_gib, d_gib):
 
 def calculate_attribute(spatio_color_granule, granules_to_calculate, y, x, bbox):
     label = granules_to_calculate[y][x]
-
+    if label == -1:
+        return 0
     # minY, minX, maxY, maxX = bbox
     # test = []
     # for y_t in range(minY, maxY):
