@@ -11,6 +11,7 @@ def compute_3D_difference_matrix(frames, current_frame):
 
     return erode_diff_frames(difference)
 
+
 def compute_median_matrix(difference_3D_matrix):
     height, width, _ = difference_3D_matrix[0].shape
 
@@ -28,13 +29,23 @@ def compute_median_matrix(difference_3D_matrix):
 
     return median_matrix
 
+
 def median_filtration(diff_frames):
     for index, frame in enumerate(diff_frames):
         diff_frames[index] = cv2.medianBlur(frame, 11)
     return diff_frames
 
+
 def erode_diff_frames(diff_frames):
     kernel = np.ones((5, 5), np.uint8)
     for index, frame in enumerate(diff_frames):
         diff_frames[index] = cv2.erode(frame, kernel)
+    return diff_frames
+
+
+def histogram_equalization(diff_frames):
+    for index, frame in enumerate(diff_frames):
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        frame[:, :, 2] = cv2.equalizeHist(frame[:, :, 2])
+        diff_frames[index] = cv2.cvtColor(frame, cv2.COLOR_HSV2BGR)
     return diff_frames

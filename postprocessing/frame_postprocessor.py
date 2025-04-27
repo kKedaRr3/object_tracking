@@ -7,7 +7,6 @@ def draw_tracked_object_bbox(object_bbox, frame):
 
     return frame
 
-
 def create_video_from_frames(frames, output_path, fps=30):
     height, width, _ = frames[0].shape
 

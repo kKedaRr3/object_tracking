@@ -1,3 +1,5 @@
+import cv2
+
 from preprocessing.granulation import find_max_granule_index
 import numpy as np
 from numba import njit
@@ -126,4 +128,10 @@ def get_attribute(spatio_color_granule, granule, intersection):
 
 
 def segment_foreground(rule_base):
-    return np.where(rule_base == 2, 1, 0).astype(np.uint8)
+    foreground = np.where(rule_base == 2, 1, 0).astype(np.uint8)
+    # dilated_foreground = cv2.dilate(foreground, np.ones((3, 3), np.uint8), iterations=2)
+
+    # to dziala calkiem spoko
+    dilated_foreground = cv2.morphologyEx(foreground, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8), iterations=2)
+    cv2.imwrite("../results/man/dilated_foreground.jpg", dilated_foreground * 255)
+    return dilated_foreground

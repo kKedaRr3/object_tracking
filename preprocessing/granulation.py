@@ -26,23 +26,25 @@ def create_granules_color(image, threshold: int):
             queue = [(y, x)]
             while queue:
                 current_y, current_x = queue.pop(0)
-                for (off_set_y, off_set_x) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
+                for (off_set_y, off_set_x) in [(-1, 0), (0, -1), (0, 1), (1, 0)]:
+                # for (off_set_y, off_set_x) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
                     neighbor_y, neighbor_x = current_y + off_set_y, current_x + off_set_x
                     if 0 <= neighbor_y < height and 0 <= neighbor_x < width and np.all(
                             image[neighbor_y][neighbor_x]) != 0:
-                        if colour_nearness_rgb(image[current_y][current_x], image[neighbor_y][neighbor_x],
-                                               threshold) and granules[neighbor_y][neighbor_x] == -1:
-                            neighbor_found = True
+                        if granules[neighbor_y][neighbor_x] == -1:
+                            if colour_nearness_rgb(image[current_y][current_x], image[neighbor_y][neighbor_x],
+                                                   threshold):
+                                neighbor_found = True
 
-                            initial_colors[granule_index] = image[y][x]
-                            bounding_boxes[granule_index] = [y, x, y, x]  # [minY, minX, maxY, maxX]
+                                initial_colors[granule_index] = image[y][x]
+                                bounding_boxes[granule_index] = [y, x, y, x]  # [minY, minX, maxY, maxX]
 
-                            granules[neighbor_y][neighbor_x] = granule_index
-                            queue.append((neighbor_y, neighbor_x))
-                            bounding_boxes[granule_index][0] = min(bounding_boxes[granule_index][0], neighbor_y)  # minY
-                            bounding_boxes[granule_index][1] = min(bounding_boxes[granule_index][1], neighbor_x)  # minX
-                            bounding_boxes[granule_index][2] = max(bounding_boxes[granule_index][2], neighbor_y)  # maxY
-                            bounding_boxes[granule_index][3] = max(bounding_boxes[granule_index][3], neighbor_x)  # maxX
+                                granules[neighbor_y][neighbor_x] = granule_index
+                                queue.append((neighbor_y, neighbor_x))
+                                bounding_boxes[granule_index][0] = min(bounding_boxes[granule_index][0], neighbor_y)  # minY
+                                bounding_boxes[granule_index][1] = min(bounding_boxes[granule_index][1], neighbor_x)  # minX
+                                bounding_boxes[granule_index][2] = max(bounding_boxes[granule_index][2], neighbor_y)  # maxY
+                                bounding_boxes[granule_index][3] = max(bounding_boxes[granule_index][3], neighbor_x)  # maxX
 
             if neighbor_found:
                 granule_index += 1

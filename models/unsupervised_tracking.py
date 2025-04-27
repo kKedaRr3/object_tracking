@@ -22,6 +22,7 @@ def object_tracking(frames: np.array, depth_frames: np.array, output_path: str, 
     median_matrix = compute_median_matrix(diff_3D_matrix)
     med_threshold = 0.3 * np.max(median_matrix)
 
+
     spatio_temporal_gib = form_spatiotemporal_granules(diff_3D_matrix, med_threshold)
 
     rgb_gib = form_rgb_d_granules(spatio_temporal_gib[0], spatio_temporal_gib[1], spatio_temporal_gib[2], threshold)
@@ -47,24 +48,25 @@ def object_tracking(frames: np.array, depth_frames: np.array, output_path: str, 
         print(f"\nframe {frame_index}/{len(frames)}")
         current_frame = frames[frame_index]
 
-        current_spatio_colour_granules = create_granules_color(current_frame, threshold)
+        current_spatio_colour_gib = create_granules_color(current_frame, threshold)
 
-        rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib, d_gib)
+        rule_base, features = generate_rule_base(current_spatio_colour_gib, spatio_temporal_gib, rgb_gib, d_gib)
 
         '''for tests'''
         rule_base_scaled = (rule_base / 2 * 255).astype(np.uint8)
-        cv2.imwrite(f"../results/man/rule_base/frame_{frame_index}.jpg", rule_base_scaled)
+        cv2.imwrite(f"../results/man/rule_base/test/frame_{frame_index}.jpg", rule_base_scaled)
         '''for tests'''
 
         coverage, test_flow_graph = compute_rule_base_coverage(flow_graph, features)
         print("coverage: ", coverage)
 
-        if coverage > 0.0004:
-            features_to_update = get_features_to_update(flow_graph, test_flow_graph, 0.5)
+        # 0.0002 Troche za male i za kazdym razem sie aktualizuje
+        if coverage > 0.001:
+            features_to_update = get_features_to_update(flow_graph, test_flow_graph, 0.4)
             print("\n\nupdate required")
             print(features_to_update)
             prev_frames = frames[frame_index - p: frame_index]
-            if "sp_t" or "rgb" in features_to_update:
+            if "sp_t" in features_to_update or "rgb" in features_to_update:
                 diff_3D_matrix = compute_3D_difference_matrix(prev_frames, current_frame)
                 spatio_temporal_gib = form_spatiotemporal_granules(diff_3D_matrix, med_threshold)
                 if "rgb" in features_to_update:
@@ -78,11 +80,11 @@ def object_tracking(frames: np.array, depth_frames: np.array, output_path: str, 
                 depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
                 d_gib = create_granules_color(depth_median_matrix, threshold)
 
-            rule_base, features = generate_rule_base(current_spatio_colour_granules, spatio_temporal_gib, rgb_gib,
+            rule_base, features = generate_rule_base(current_spatio_colour_gib, spatio_temporal_gib, rgb_gib,
                                                      d_gib)
             flow_graph = generate_flow_graph(features)
 
-        Visualization.draw_flow_graph(flow_graph)
+        # Visualization.draw_flow_graph(flow_graph)
 
         foreground = segment_foreground(rule_base)
 
