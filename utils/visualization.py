@@ -9,20 +9,18 @@ from preprocessing.video_preprocessing import compute_3D_difference_matrix, comp
 class Visualization:
 
     @staticmethod
-    def visualize_spatiotemporal_granules(frames, output_path, bbox=True, bbox_color=(255, 0, 0)):
+    def visualize_spatiotemporal_granules(frames, output_path, threshold=30, bbox=True, bbox_color=(255, 0, 0)):
         if len(frames) <= 3:
             raise Exception('Not enough frames to visualize')
         diff_frames = compute_3D_difference_matrix(frames[:-1], frames[-1])
-        median_frame = compute_median_matrix(diff_frames)
-        threshold = 0.3 * np.max(median_frame)
 
         granules, initial_colors, bounding_boxes = form_spatiotemporal_granules(diff_frames, threshold)
 
         if bbox:
             for granule_index, bbox in bounding_boxes.items():
                 minY, minX, maxY, maxX = bbox
-                cv2.rectangle(median_frame, (minX, minY), (maxX, maxY), bbox_color, 1)
-            cv2.imwrite(output_path, median_frame)
+                cv2.rectangle(frames[0], (minX, minY), (maxX, maxY), bbox_color, 1)
+            cv2.imwrite(output_path, frames[0])
         else:
             result = np.zeros_like(frames[0])
             for y in range(frames[0].shape[0]):
@@ -53,12 +51,10 @@ class Visualization:
             cv2.imwrite(output_path, result)
 
     @staticmethod
-    def visualize_rgb_granules(frames, output_path, bbox=True, bbox_color=(255, 0, 0)):
+    def visualize_rgb_granules(frames, output_path, threshold=30, bbox=True, bbox_color=(255, 0, 0)):
         if len(frames) <= 3:
             raise Exception('Not enough frames to visualize')
         diff_frames = compute_3D_difference_matrix(frames[:-1], frames[-1])
-        median_frame = compute_median_matrix(diff_frames)
-        threshold = 0.3 * np.max(median_frame)
 
         granules, initial_colors, bounding_boxes = form_spatiotemporal_granules(diff_frames, threshold)
         rgb_granules, rgb_initial_colors, rgb_bounding_boxes = form_rgb_d_granules(granules, initial_colors,
@@ -78,14 +74,12 @@ class Visualization:
             cv2.imwrite(output_path, result)
 
     @staticmethod
-    def visualize_d_granules(frames, output_path, bbox=True, bbox_color=(255, 0, 0)):
+    def visualize_d_granules(frames, output_path, threshold=30, bbox=True, bbox_color=(255, 0, 0)):
         if len(frames) <= 3:
             raise Exception('Not enough frames to visualize')
 
         depth_diff_3D_matrix = compute_3D_difference_matrix(frames[:-1], frames[-1])
-        depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
-        cv2.imwrite("../results/man/diff_median.jpg", depth_median_matrix)
-        threshold = 0.3 * np.max(depth_median_matrix)
+
         sp_t_gib = form_spatiotemporal_granules(depth_diff_3D_matrix, threshold)
         d_gib = form_rgb_d_granules(sp_t_gib[0], sp_t_gib[1], sp_t_gib[2], 15)
 

@@ -132,6 +132,6 @@ def segment_foreground(rule_base):
     # dilated_foreground = cv2.dilate(foreground, np.ones((3, 3), np.uint8), iterations=2)
 
     # to dziala calkiem spoko
-    dilated_foreground = cv2.morphologyEx(foreground, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8), iterations=2)
+    dilated_foreground = cv2.morphologyEx(foreground, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8), iterations=2)
     cv2.imwrite("../results/man/dilated_foreground.jpg", dilated_foreground * 255)
     return dilated_foreground

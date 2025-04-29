@@ -14,23 +14,30 @@ def object_tracking(frames: np.array, depth_frames: np.array, output_path: str, 
     Główny algorytm śledzenia obiektów w klatkach wideo.
     """
 
+    rb_threshold = threshold * 4
+
     initial_frames = frames[:p]
     subsequent_frame = frames[p]
     processed_frames = []
 
     diff_3D_matrix = compute_3D_difference_matrix(initial_frames, subsequent_frame)
-    median_matrix = compute_median_matrix(diff_3D_matrix)
-    med_threshold = 0.3 * np.max(median_matrix)
+    # median_matrix = compute_median_matrix(diff_3D_matrix)
+    # med_threshold = 0.3 * np.max(median_matrix)
 
 
-    spatio_temporal_gib = form_spatiotemporal_granules(diff_3D_matrix, med_threshold)
+    spatio_temporal_gib = form_spatiotemporal_granules(diff_3D_matrix, rb_threshold)
 
-    rgb_gib = form_rgb_d_granules(spatio_temporal_gib[0], spatio_temporal_gib[1], spatio_temporal_gib[2], threshold)
+    rgb_gib = form_rgb_d_granules(spatio_temporal_gib[0], spatio_temporal_gib[1], spatio_temporal_gib[2], rb_threshold)
 
     initial_depth_frames, subsequent_depth_frame = depth_frames[:p], depth_frames[p]
     depth_diff_3D_matrix = compute_3D_difference_matrix(initial_depth_frames, subsequent_depth_frame)
-    depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
-    d_gib = create_granules_color(depth_median_matrix, threshold)
+    '''for tests'''
+    # TODO
+    d_sp_t_gib = form_spatiotemporal_granules(depth_diff_3D_matrix, rb_threshold)
+    d_gib = form_rgb_d_granules(d_sp_t_gib[0], d_sp_t_gib[1], d_sp_t_gib[2], rb_threshold)
+    # depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
+    # d_gib = create_granules_color(depth_median_matrix, threshold)
+    '''for tests'''
 
     subsequent_spatio_colour_gib = create_granules_color(subsequent_frame, threshold)
 
@@ -61,24 +68,29 @@ def object_tracking(frames: np.array, depth_frames: np.array, output_path: str, 
         print("coverage: ", coverage)
 
         # 0.0002 Troche za male i za kazdym razem sie aktualizuje
-        if coverage > 0.001:
+        if coverage > 0.0005:
             features_to_update = get_features_to_update(flow_graph, test_flow_graph, 0.4)
             print("\n\nupdate required")
             print(features_to_update)
             prev_frames = frames[frame_index - p: frame_index]
             if "sp_t" in features_to_update or "rgb" in features_to_update:
                 diff_3D_matrix = compute_3D_difference_matrix(prev_frames, current_frame)
-                spatio_temporal_gib = form_spatiotemporal_granules(diff_3D_matrix, med_threshold)
+                spatio_temporal_gib = form_spatiotemporal_granules(diff_3D_matrix, rb_threshold)
                 if "rgb" in features_to_update:
                     rgb_gib = form_rgb_d_granules(spatio_temporal_gib[0], spatio_temporal_gib[1],
-                                                  spatio_temporal_gib[2], threshold)
+                                                  spatio_temporal_gib[2], rb_threshold)
 
             if "d" in features_to_update:
                 prev_depth_frames = depth_frames[frame_index - p: frame_index]
                 current_depth_frame = depth_frames[frame_index]
                 depth_diff_3D_matrix = compute_3D_difference_matrix(prev_depth_frames, current_depth_frame)
-                depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
-                d_gib = create_granules_color(depth_median_matrix, threshold)
+                '''for tests'''
+                # TODO
+                d_sp_t_bib = form_spatiotemporal_granules(depth_diff_3D_matrix, rb_threshold)
+                d_gib = form_rgb_d_granules(d_sp_t_bib[0], d_sp_t_bib[1], d_sp_t_bib[2], rb_threshold)
+                # depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
+                # d_gib = create_granules_color(depth_median_matrix, threshold)
+                '''for tests'''
 
             rule_base, features = generate_rule_base(current_spatio_colour_gib, spatio_temporal_gib, rgb_gib,
                                                      d_gib)
