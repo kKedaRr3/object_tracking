@@ -31,13 +31,8 @@ def object_tracking(frames: np.array, depth_frames: np.array, output_path: str, 
 
     initial_depth_frames, subsequent_depth_frame = depth_frames[:p], depth_frames[p]
     depth_diff_3D_matrix = compute_3D_difference_matrix(initial_depth_frames, subsequent_depth_frame)
-    '''for tests'''
-    # TODO
     d_sp_t_gib = form_spatiotemporal_granules(depth_diff_3D_matrix, rb_threshold)
     d_gib = form_rgb_d_granules(d_sp_t_gib[0], d_sp_t_gib[1], d_sp_t_gib[2], rb_threshold)
-    # depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
-    # d_gib = create_granules_color(depth_median_matrix, threshold)
-    '''for tests'''
 
     subsequent_spatio_colour_gib = create_granules_color(subsequent_frame, threshold)
 
@@ -84,13 +79,8 @@ def object_tracking(frames: np.array, depth_frames: np.array, output_path: str, 
                 prev_depth_frames = depth_frames[frame_index - p: frame_index]
                 current_depth_frame = depth_frames[frame_index]
                 depth_diff_3D_matrix = compute_3D_difference_matrix(prev_depth_frames, current_depth_frame)
-                '''for tests'''
-                # TODO
                 d_sp_t_bib = form_spatiotemporal_granules(depth_diff_3D_matrix, rb_threshold)
                 d_gib = form_rgb_d_granules(d_sp_t_bib[0], d_sp_t_bib[1], d_sp_t_bib[2], rb_threshold)
-                # depth_median_matrix = compute_median_matrix(depth_diff_3D_matrix)
-                # d_gib = create_granules_color(depth_median_matrix, threshold)
-                '''for tests'''
 
             rule_base, features = generate_rule_base(current_spatio_colour_gib, spatio_temporal_gib, rgb_gib,
                                                      d_gib)
