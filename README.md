@@ -4,6 +4,16 @@ This project implements an object tracking system using rough sets and flow grap
 It processes video input to detect and track moving object across frames.
 
 
+## Funkcje
+
+- 🧠 Nadzorowane śledzenie obiektów z wykorzystaniem teorii zbiorów przybliżonych i grafów przepływu
+- 🎥 Obsługa wideo w formacie RGB-D
+- 📈 Modularna architektura: osobne etapy wstępnego przetwarzania, śledzenia i postprocessingu
+- 🧪 Testy jednostkowe 
+- 📦 Łatwe uruchomienie, minimalne wymagania dotyczące zależności
+
+
+
 ## Project Structure
 
   ```text
