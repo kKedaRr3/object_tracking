@@ -1,3 +1,5 @@
+from collections import deque
+
 import numpy as np
 from numba import njit, prange
 
@@ -5,7 +7,6 @@ from numba import njit, prange
 def colour_nearness_rgb(color1, color2, threshold):
     '''Funkcja do sprawdzania podobiensta kolorow'''
     return np.linalg.norm(np.array(color1) - np.array(color2)) < threshold
-
 
 def create_granules_color(image, threshold: int):
     '''Funkcja tworzaca granule'''
@@ -23,9 +24,9 @@ def create_granules_color(image, threshold: int):
                 continue
 
             neighbor_found = False
-            queue = [(y, x)]
+            queue = deque([(y, x)])
             while queue:
-                current_y, current_x = queue.pop(0)
+                current_y, current_x = queue.popleft()
                 for (off_set_y, off_set_x) in [(-1, 0), (0, -1), (0, 1), (1, 0)]:
                 # for (off_set_y, off_set_x) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]:
                     neighbor_y, neighbor_x = current_y + off_set_y, current_x + off_set_x

@@ -129,7 +129,6 @@ def get_attribute(spatio_color_granule, granule, intersection):
 
 def segment_foreground(rule_base):
     foreground = np.where(rule_base == 2, 1, 0).astype(np.uint8)
-    # dilated_foreground = cv2.dilate(foreground, np.ones((3, 3), np.uint8), iterations=2)
 
     # to dziala calkiem spoko
     dilated_foreground = cv2.morphologyEx(foreground, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8), iterations=2)
